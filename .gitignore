@@ -1,0 +1,13 @@
+# .gitignore
+
+# Dependencies
+node_modules/
+
+# Build outputs
+bin/
+
+# Environment variables
+.env
+
+# Temporary files
+.claude/tmp/

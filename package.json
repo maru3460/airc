@@ -1,0 +1,27 @@
+{
+  "name": "@maru3460/airc",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "copilot や claude の設定を簡単に共有するためのツール",
+  "bin": {
+    "airc": "./bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "author": "maru3460",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ]
+}
