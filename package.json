@@ -4,7 +4,7 @@
   "type": "module",
   "description": "copilot や claude の設定を簡単に共有するためのツール",
   "bin": {
-    "airc": "./bin/cli.js"
+    "airc": "bin/cli.js"
   },
   "engines": {
     "node": ">=18.0.0"
