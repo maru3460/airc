@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "files": [
+    ".claude/commands/sample.md",
+    ".github/chatmodes/sample.chatmode.md",
+    ".github/instructions/sample.instructions.md",
+    ".github/prompts/sample.prompt.md",
+    "CLAUDE.md"
+  ]
+}

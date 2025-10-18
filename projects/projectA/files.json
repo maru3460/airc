@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "files": [
+    ".github/instructions/a.instructions.md",
+    ".github/prompts/a.prompt.md"
+  ]
+}

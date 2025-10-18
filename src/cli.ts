@@ -1,10 +1,33 @@
 #!/usr/bin/env node
 
-import { writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { parseArgs } from './cli/yargs.js';
+import { executeDownload } from './cli/commands.js';
 
-// test.md をカレントディレクトリに作成（中身は空）
-const filePath = resolve(process.cwd(), 'test.md');
-writeFileSync(filePath, '', 'utf-8');
+/**
+ * メイン関数
+ */
+async function main(): Promise<void> {
+  try {
+    // コマンドライン引数の解析（yargsを使用）
+    const options = parseArgs(process.argv);
 
-console.log('✅ test.md を作成しました！');
+    // ヘルプ表示の場合は自動的にyargsが処理するため、
+    // ここではダウンロードコマンドを実行するのみ
+    await executeDownload(options);
+
+  } catch (error) {
+    // エラー時の処理
+    console.error(`❌ エラー: ${error}`);
+    process.exit(1);
+  }
+}
+
+// エントリポイント
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(`❌ 予期しないエラー: ${error}`);
+    process.exit(1);
+  });
