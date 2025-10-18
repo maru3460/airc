@@ -7,8 +7,8 @@ export type DownloadResult = 'success' | 'skipped' | 'error';
  * CLI オプション
  */
 export interface CliOptions {
-  /** プロジェクト名 */
-  project: string;
+  /** プロファイル名 */
+  profile: string;
   /** 強制上書きフラグ */
   force: boolean;
   /** ヘルプ表示フラグ */

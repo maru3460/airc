@@ -34,10 +34,10 @@ export function parseArgs(args: string[]): CliOptions {
     .alias('h', 'help')
     .version(version)
     .alias('v', 'version')
-    .option('project', {
+    .option('profile', {
       alias: 'p',
       type: 'string',
-      description: 'プロジェクト名を指定',
+      description: 'プロファイル名を指定',
       default: DEFAULT_PROJECT
     })
     .option('force', {
@@ -46,14 +46,14 @@ export function parseArgs(args: string[]): CliOptions {
       description: '既存ファイルを強制上書き',
       default: false
     })
-    .example('$0', 'デフォルトプロジェクトの設定をダウンロード')
-    .example('$0 -p myproject', '"myproject" の設定をダウンロード')
+    .example('$0', 'デフォルトプロファイルの設定をダウンロード')
+    .example('$0 -p myprofile', '"myprofile" の設定をダウンロード')
     .example('$0 --force', '既存ファイルを強制上書きしてダウンロード')
     .epilogue('詳細: https://github.com/maru3460/airc')
     .parseSync();
 
   return {
-    project: parsed.project,
+    profile: parsed.profile,
     force: parsed.force,
     help: Boolean(parsed.help)
   };

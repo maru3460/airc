@@ -8,20 +8,20 @@ import type { DownloadResult } from '../types.js';
  * GitHub からファイルをダウンロードする
  *
  * @param filePath GitHub リポジトリ内のファイルパス
- * @param project プロジェクト名
+ * @param profile プロファイル名
  * @param force 強制上書きフラグ
  * @returns ダウンロード結果 ('success' | 'skipped' | 'error')
  */
 export async function downloadFile(
   filePath: string,
-  project: string,
+  profile: string,
   force: boolean
 ): Promise<DownloadResult> {
   // raw.githubusercontent.com の URL 生成
   const rawUrl = `${GITHUB_RAW_BASE}/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/${filePath}`;
 
   // ローカルパスの生成
-  const localPath = toLocalPath(filePath, project);
+  const localPath = toLocalPath(filePath, profile);
 
   // パスバリデーション
   if (!isValidPath(localPath)) {

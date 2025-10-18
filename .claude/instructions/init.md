@@ -13,8 +13,9 @@
 ### 実装構造
 
 - **モジュール構成**: `src/` 配下に機能別ファイル分割（ビルド後は `bin/` に出力）
-- **GitHub API**: 認証不要（Public リポジトリ前提）でファイルリストを動的に取得
+- **GitHub API**: マニフェストファイル (`files.json`) を優先的に使用、存在しない場合は従来の再帰的取得にフォールバック
 - **ダウンロード元**: `raw.githubusercontent.com` から直接ダウンロード
+- **マニフェスト自動生成**: pre-commit hook で `files.json` を自動更新
 
 ## リポジトリ構造
 
@@ -22,33 +23,39 @@
 airc/
 ├── src/                    # TypeScript ソースコード
 ├── bin/                    # ビルド出力先（npm 配布用）
+├── scripts/                # ユーティリティスクリプト
+│   └── generate-manifest.js # マニフェスト自動生成スクリプト
 ├── package.json            # npm パッケージ設定
 ├── tsconfig.json           # TypeScript 設定
-└── projects/               # 設定ファイルの保存先
-    ├── default/            # デフォルトプロジェクト（プロジェクト指定なしで使用）
+└── profiles/               # 設定ファイルの保存先
+    ├── default/            # デフォルトプロファイル（プロファイル指定なしで使用）
     │   ├── .github/
     │   │   ├── chatmodes/  # GitHub Copilot チャットモード設定
     │   │   └── prompts/    # GitHub Copilot プロンプト設定
     │   ├── .claude/        # Claude 設定
+    │   ├── files.json      # マニフェストファイル（自動生成）
     │   └── CLAUDE.md       # Claude ルート設定ファイル
-    └── {project-name}/     # カスタムプロジェクト（追加可能）
+    └── {profile-name}/     # カスタムプロファイル（追加可能）
+        └── files.json      # マニフェストファイル（自動生成）
 ```
 
 ## 処理フロー
 
 ### メイン処理
 
-1. コマンドライン引数解析（`-p`, `--force`, `--help`）
-2. プロジェクト指定なし → `project = "default"`
-3. GitHub API でプロジェクト存在確認 & ファイルリスト取得（再帰的）
+1. コマンドライン引数解析（`--profile`, `--force`, `--help`）
+2. プロファイル指定なし → `profile = "default"`
+3. **マニフェスト取得を試行**
+   - `profiles/{profile}/files.json` が存在すれば使用（1 リクエストのみ）
+   - 存在しない場合は GitHub API で再帰的にファイルリスト取得（フォールバック）
 4. 各ファイルをダウンロード（上書き確認あり、または `--force` で強制上書き）
 5. 結果表示
 
 ### ダウンロード処理
 
-- GitHub パス（例: `projects/default/.github/chatmodes/file.md`）
+- GitHub パス（例: `profiles/default/.github/chatmodes/file.md`）
 - → raw URL 構築: `https://raw.githubusercontent.com/maru3460/airc/main/{path}`
-- → ローカルパス変換: `projects/{project}/` を除去 → `.github/chatmodes/file.md`
+- → ローカルパス変換: `profiles/{profile}/` を除去 → `.github/chatmodes/file.md`
 - → ファイル存在チェック & 上書き確認
 - → ディレクトリ作成 & ファイル書き込み
 
@@ -56,26 +63,31 @@ airc/
 
 ### コマンドライン引数
 
-- **プロジェクト指定**: `-p <project-name>` または `--project <project-name>` (デフォルト: `default`)
+- **プロファイル指定**: `--profile <profile-name>` (デフォルト: `default`)
 - **強制上書き**: `-f` または `--force`
 - **ヘルプ**: `-h` または `--help`
 
 ### エラーハンドリング
 
-- **致命的エラー**（処理中断）: プロジェクト未存在（404）、GitHub API レート制限超過（403）
+- **致命的エラー**（処理中断）: プロファイル未存在（404）、GitHub API レート制限超過（403）
 - **非致命的エラー**（継続）: 個別ファイルのダウンロード失敗、書き込みエラー
 
 ### GitHub API
 
 - **認証不要**: Public リポジトリ前提
 - **レート制限**: 60 リクエスト/時間（未認証）
-- **ファイルリスト取得**: `GET /repos/{owner}/{repo}/contents/projects/{project}` を再帰的に実行
+- **マニフェスト方式**（推奨）:
+  - `files.json` を使用することで API リクエストを 1 回に削減
+  - レート制限到達のリスクをほぼゼロに
+- **フォールバック方式**:
+  - マニフェストが存在しない場合は `GET /repos/{owner}/{repo}/contents/profiles/{profile}` を再帰的に実行
 
-### プロジェクト追加方法
+### プロファイル追加方法
 
-1. `projects/` 配下に新プロジェクトディレクトリを作成
+1. `profiles/` 配下に新プロファイルディレクトリを作成
 2. `.github/chatmodes/`, `.github/prompts/`, `.claude/` 等を配置
-3. GitHub に push（コード側の修正不要、GitHub API で自動認識）
+3. `git commit` で自動的に `files.json` が生成される（pre-commit hook）
+4. GitHub に push（コード側の修正不要）
 
 ## 開発コマンド
 
@@ -85,6 +97,9 @@ npm run build
 
 # 開発モード（watch）
 npm run dev
+
+# マニフェスト手動生成（通常は pre-commit hook で自動実行）
+node scripts/generate-manifest.js
 
 # ローカルテスト実行
 node bin/cli.js
@@ -106,7 +121,28 @@ npm publish
 ## 実装時の注意点
 
 - **モジュール分割**: 機能ごとに適切にファイルを分割し、型安全性を保つ
-- **GitHub API の再帰呼び出し**: ディレクトリを走査してファイルリストを動的取得
-- **パス変換**: `projects/{project}/` プレフィックスを除去してローカルパス生成
+- **マニフェスト優先**: まず `files.json` の取得を試み、失敗時のみ再帰的取得にフォールバック
+- **パス変換**: `profiles/{profile}/` プレフィックスを除去してローカルパス生成
 - **エラーメッセージ**: ユーザーフレンドリーなメッセージ（絵文字アイコン使用）
 - **ビルド**: TypeScript → JavaScript へのトランスパイル（`npm run build`）
+- **pre-commit hook**: `simple-git-hooks` により、コミット時に自動でマニフェスト生成・staging
+
+## マニフェストファイル形式
+
+`files.json` は各プロファイルディレクトリ直下に配置され、以下の形式を持ちます：
+
+```json
+{
+  "version": "1.0",
+  "files": [
+    ".github/chatmodes/file1.md",
+    ".github/prompts/file2.md",
+    ".claude/instructions.md",
+    "CLAUDE.md"
+  ]
+}
+```
+
+- **自動生成**: `scripts/generate-manifest.js` により自動生成
+- **パス形式**: プロファイルディレクトリからの相対パス
+- **除外ファイル**: `files.json` 自身は除外される

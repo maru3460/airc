@@ -3,11 +3,11 @@ import { GITHUB_API_BASE, REPO_OWNER, REPO_NAME } from '../config.js';
 import type { GitHubContentItem, Manifest } from '../types.js';
 
 /**
- * GitHub API を使用してプロジェクト配下のファイルリストを取得する
- * @param project プロジェクト名 (例: "default")
+ * GitHub API を使用してプロファイル配下のファイルリストを取得する
+ * @param profile プロファイル名 (例: "default")
  * @returns ファイルパスの配列
  */
-export async function getProjectFiles(project: string): Promise<string[]> {
+export async function getProjectFiles(profile: string): Promise<string[]> {
   const files: string[] = [];
 
   /**
@@ -25,7 +25,7 @@ export async function getProjectFiles(project: string): Promise<string[]> {
       }, (res) => {
         // ステータスコードのチェック
         if (res.statusCode === 404) {
-          reject(new Error(`❌ プロジェクトが見つかりません: ${project}\n\n利用可能なプロジェクトは GitHub リポジトリの projects/ ディレクトリを確認してください。`));
+          reject(new Error(`❌ プロファイルが見つかりません: ${profile}\n\n利用可能なプロファイルは GitHub リポジトリの profiles/ ディレクトリを確認してください。`));
           return;
         }
 
@@ -74,18 +74,18 @@ export async function getProjectFiles(project: string): Promise<string[]> {
     });
   }
 
-  // プロジェクトディレクトリを起点に再帰取得
-  await fetchDirectory(`projects/${project}`);
+  // プロファイルディレクトリを起点に再帰取得
+  await fetchDirectory(`profiles/${profile}`);
   return files;
 }
 
 /**
  * マニフェストファイル (files.json) を取得する
- * @param project プロジェクト名 (例: "default")
+ * @param profile プロファイル名 (例: "default")
  * @returns マニフェストオブジェクト、存在しない場合は null
  */
-export async function fetchManifest(project: string): Promise<Manifest | null> {
-  const manifestPath = `projects/${project}/files.json`;
+export async function fetchManifest(profile: string): Promise<Manifest | null> {
+  const manifestPath = `profiles/${profile}/files.json`;
   const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${manifestPath}`;
 
   return new Promise((resolve) => {

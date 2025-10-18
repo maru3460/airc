@@ -3,7 +3,7 @@
 /**
  * マニフェストファイル (files.json) 自動生成スクリプト
  *
- * projects/ 配下の各プロジェクトディレクトリを走査し、
+ * profiles/ 配下の各プロジェクトディレクトリを走査し、
  * 含まれるファイルのリストを files.json として保存する。
  *
  * 実行: node scripts/generate-manifest.js
@@ -17,7 +17,7 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PROJECTS_DIR = join(__dirname, '../projects');
+const PROJECTS_DIR = join(__dirname, '../profiles');
 const MANIFEST_VERSION = '1.0';
 
 /**
@@ -59,16 +59,16 @@ async function getFilesRecursively(dir, baseDir) {
 }
 
 /**
- * プロジェクトのマニフェストを生成
- * @param {string} projectName - プロジェクト名
- * @param {string} projectDir - プロジェクトディレクトリのパス
+ * プロファイルのマニフェストを生成
+ * @param {string} profileName - プロファイル名
+ * @param {string} profileDir - プロファイルディレクトリのパス
  */
-async function generateManifest(projectName, projectDir) {
+async function generateManifest(profileName, profileDir) {
   try {
-    // プロジェクトディレクトリ配下のファイルを取得
-    const files = await getFilesRecursively(projectDir, projectDir);
+    // プロファイルディレクトリ配下のファイルを取得
+    const files = await getFilesRecursively(profileDir, profileDir);
 
-    // パス変換: projects/{project}/ プレフィックスを除去済み（相対パスで取得しているため）
+    // パス変換: profiles/{profile}/ プレフィックスを除去済み（相対パスで取得しているため）
     // ファイルリストをソート（安定性のため）
     files.sort();
 
@@ -79,13 +79,13 @@ async function generateManifest(projectName, projectDir) {
     };
 
     // JSON として保存
-    const manifestPath = join(projectDir, 'files.json');
+    const manifestPath = join(profileDir, 'files.json');
     await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
 
-    console.log(`✅ ${projectName}: ${files.length} ファイルを検出しました`);
+    console.log(`✅ ${profileName}: ${files.length} ファイルを検出しました`);
     console.log(`   → ${manifestPath}`);
   } catch (error) {
-    console.error(`❌ ${projectName}: マニフェスト生成に失敗しました`);
+    console.error(`❌ ${profileName}: マニフェスト生成に失敗しました`);
     console.error(`   エラー: ${error.message}`);
   }
 }
@@ -94,29 +94,29 @@ async function generateManifest(projectName, projectDir) {
  * メイン処理
  */
 async function main() {
-  console.log('🔍 projects/ 配下を走査しています...\n');
+  console.log('🔍 profiles/ 配下を走査しています...\n');
 
   try {
-    // projects/ ディレクトリの存在確認
+    // profiles/ ディレクトリの存在確認
     const projectsStat = await stat(PROJECTS_DIR);
     if (!projectsStat.isDirectory()) {
-      console.error('❌ projects/ がディレクトリではありません');
+      console.error('❌ profiles/ がディレクトリではありません');
       process.exit(1);
     }
 
-    // projects/ 配下のプロジェクトディレクトリを取得
+    // profiles/ 配下のプロファイルディレクトリを取得
     const entries = await readdir(PROJECTS_DIR, { withFileTypes: true });
-    const projects = entries.filter(entry => entry.isDirectory());
+    const profiles = entries.filter(entry => entry.isDirectory());
 
-    if (projects.length === 0) {
-      console.log('⚠️  プロジェクトが見つかりませんでした');
+    if (profiles.length === 0) {
+      console.log('⚠️  プロファイルが見つかりませんでした');
       return;
     }
 
-    // 各プロジェクトのマニフェストを生成
-    for (const project of projects) {
-      const projectDir = join(PROJECTS_DIR, project.name);
-      await generateManifest(project.name, projectDir);
+    // 各プロファイルのマニフェストを生成
+    for (const profile of profiles) {
+      const profileDir = join(PROJECTS_DIR, profile.name);
+      await generateManifest(profile.name, profileDir);
     }
 
     console.log('\n✨ マニフェスト生成が完了しました！');

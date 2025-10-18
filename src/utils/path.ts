@@ -8,10 +8,10 @@ export function isValidPath(path: string): boolean {
 /**
  * GitHub リポジトリパスをローカルパスに変換する
  *
- * @param githubPath GitHub リポジトリ内のパス (例: "projects/default/.github/chatmodes/file.md")
- * @param project プロジェクト名
+ * @param githubPath GitHub リポジトリ内のパス (例: "profiles/default/.github/chatmodes/file.md")
+ * @param profile プロファイル名
  * @returns ローカルパス (例: ".github/chatmodes/file.md")
  */
-export function toLocalPath(githubPath: string, project: string): string {
-  return githubPath.replace(`projects/${project}/`, '');
+export function toLocalPath(githubPath: string, profile: string): string {
+  return githubPath.replace(`profiles/${profile}/`, '');
 }
