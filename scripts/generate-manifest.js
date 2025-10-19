@@ -40,8 +40,8 @@ async function getFilesRecursively(dir, baseDir) {
         const subFiles = await getFilesRecursively(fullPath, baseDir);
         files.push(...subFiles);
       } else if (entry.isFile()) {
-        // files.json 自身は除外
-        if (entry.name === 'files.json') {
+        // files.json と README.md は除外
+        if (entry.name === 'files.json' || entry.name === 'README.md') {
           continue;
         }
 

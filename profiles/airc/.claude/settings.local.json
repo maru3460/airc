@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "WebFetch",
+      "mcp__deepwiki"
+    ]
+  },
+  "enableAllProjectMcpServers": true
+}

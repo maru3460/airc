@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "files": [
+    ".claude/commands/publish.md",
+    ".claude/instructions/basic.md",
+    ".claude/instructions/init.md",
+    ".claude/instructions/tummu.md",
+    ".claude/settings.local.json",
+    ".mcp.json",
+    "CLAUDE.md"
+  ]
+}

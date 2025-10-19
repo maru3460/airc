@@ -12,11 +12,14 @@ bin/
 # Temporary files
 .claude/tmp/
 
-# ai
+# claude code
 /CLAUDE.md
-AGENTS.md
-.mcp.json
-.claude/
-.github/
-!.github/pullrequest_template.md
-!.github/workflows/
+/.mcp.json
+/.claude/
+!/profiles/**/settings.local.json
+
+# other ai
+/AGENTS.md
+/.github/
+!/.github/pullrequest_template.md
+!/.github/workflows/

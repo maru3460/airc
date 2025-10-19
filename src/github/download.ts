@@ -23,6 +23,11 @@ export async function downloadFile(
   // ローカルパスの生成
   const localPath = toLocalPath(filePath, profile);
 
+  // README.md は除外
+  if (localPath.endsWith('README.md')) {
+    return { status: 'skipped' };
+  }
+
   // パスバリデーション
   if (!isValidPath(localPath)) {
     console.log(`✗ 不正なパスが検出されました: ${localPath}`);
