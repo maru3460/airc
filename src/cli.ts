@@ -34,15 +34,15 @@ main()
     process.exit(0);
   })
   .catch((error) => {
-    // エラーメッセージの表示（絵文字を統一的に付与）
+    // エラーメッセージの表示（エラークラス側で詳細なメッセージを組み立て済み）
     if (error.message) {
-      console.error(`❌ エラー: ${error.message}`);
+      console.error(`❌ ${error.message}`);
     } else {
       console.error(`❌ 予期しないエラー: ${error}`);
     }
 
     // デバッグモード時はスタックトレースも表示
-    if (process.env.DEBUG) {
+    if (process.env.DEBUG && error.stack) {
       console.error('\nスタックトレース:');
       console.error(error.stack);
     }

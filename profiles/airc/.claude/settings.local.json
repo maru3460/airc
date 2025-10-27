@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(npm run build)",
+      "Bash(node bin/cli.js:*)",
       "WebFetch",
       "mcp__deepwiki"
     ]

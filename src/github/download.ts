@@ -1,8 +1,9 @@
-import https from 'https';
 import { GITHUB_RAW_BASE, REPO_OWNER, REPO_NAME, REPO_BRANCH, MAX_FILE_SIZE } from '../config.js';
 import { fileExists, askOverwrite, ensureDir, saveFile } from '../utils/fs.js';
 import { isValidPath, toLocalPath } from '../utils/path.js';
+import { downloadFromGitHub } from '../utils/http.js';
 import type { DownloadResult } from '../types.js';
+import { PathValidationError } from '../errors.js';
 
 /**
  * GitHub からファイルをダウンロードする
@@ -28,10 +29,11 @@ export async function downloadFile(
     return { status: 'skipped' };
   }
 
-  // パスバリデーション
+  // パスバリデーション（セキュリティチェック）
   if (!isValidPath(localPath)) {
-    console.log(`✗ 不正なパスが検出されました: ${localPath}`);
-    return { status: 'error', reason: '不正なパス' };
+    const error = new PathValidationError(localPath);
+    console.log(`✗ ${error.message}`);
+    return { status: 'error', reason: error.message };
   }
 
   // ファイル存在チェック
@@ -49,64 +51,30 @@ export async function downloadFile(
   // 親ディレクトリの作成
   await ensureDir(localPath);
 
-  // HTTP GET リクエストの実行
-  return new Promise((resolve) => {
-    https.get(rawUrl, (res) => {
-      // HTTP ステータスコードの確認
-      if (res.statusCode !== 200) {
-        console.log(`✗ ダウンロード失敗 ${localPath}: HTTP ${res.statusCode}`);
-        resolve({ status: 'error', reason: `HTTP ${res.statusCode}` });
-        return;
-      }
+  // ファイルサイズ制限付きでダウンロードを実行
+  const response = await downloadFromGitHub(rawUrl, MAX_FILE_SIZE);
 
-      // Content-Length ヘッダーでファイルサイズをチェック
-      const contentLength = res.headers['content-length'];
-      if (contentLength) {
-        const fileSize = parseInt(contentLength, 10);
-        if (fileSize > MAX_FILE_SIZE) {
-          console.log(
-            `✗ ファイルサイズ超過 ${localPath}: ${(fileSize / 1024 / 1024).toFixed(2)}MB (上限: ${MAX_FILE_SIZE / 1024 / 1024}MB)`
-          );
-          res.destroy(); // ダウンロードを中止
-          resolve({ status: 'error', reason: `ファイルサイズ超過 (${(fileSize / 1024 / 1024).toFixed(2)}MB)` });
-          return;
-        }
-      }
+  // エラーチェック
+  if (response.statusCode !== 200) {
+    if (response.statusCode === 413) {
+      // ファイルサイズ超過
+      console.log(
+        `✗ ファイルサイズ超過 ${localPath}: ${response.errorReason} (上限: ${MAX_FILE_SIZE / 1024 / 1024}MB)`
+      );
+    } else {
+      // その他のエラー
+      console.log(`✗ ダウンロード失敗 ${localPath}: ${response.errorReason}`);
+    }
+    return { status: 'error', reason: response.errorReason || 'Unknown error' };
+  }
 
-      // レスポンスのストリーム処理
-      let data = '';
-      let downloadedSize = 0;
-
-      res.on('data', (chunk) => {
-        downloadedSize += chunk.length;
-
-        // ストリーム中のサイズチェック（Content-Length がない場合の対策）
-        if (downloadedSize > MAX_FILE_SIZE) {
-          console.log(
-            `✗ ファイルサイズ超過 ${localPath}: ${(downloadedSize / 1024 / 1024).toFixed(2)}MB (上限: ${MAX_FILE_SIZE / 1024 / 1024}MB)`
-          );
-          res.destroy(); // ダウンロードを中止
-          resolve({ status: 'error', reason: `ファイルサイズ超過 (${(downloadedSize / 1024 / 1024).toFixed(2)}MB)` });
-          return;
-        }
-
-        data += chunk;
-      });
-
-      res.on('end', async () => {
-        try {
-          // ファイルへの書き込み
-          await saveFile(localPath, data);
-          console.log(`✓ ダウンロード完了: ${localPath}`);
-          resolve({ status: 'success' });
-        } catch (error) {
-          console.log(`✗ 書き込み失敗 ${localPath}: ${error}`);
-          resolve({ status: 'error', reason: `書き込み失敗: ${error}` });
-        }
-      });
-    }).on('error', (error) => {
-      console.log(`✗ ダウンロード失敗 ${localPath}: ${error.message}`);
-      resolve({ status: 'error', reason: `ネットワークエラー: ${error.message}` });
-    });
-  });
+  // ファイルへの書き込み
+  try {
+    await saveFile(localPath, response.data!);
+    console.log(`✓ ダウンロード完了: ${localPath}`);
+    return { status: 'success' };
+  } catch (error) {
+    console.log(`✗ 書き込み失敗 ${localPath}: ${error}`);
+    return { status: 'error', reason: `書き込み失敗: ${error}` };
+  }
 }

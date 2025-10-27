@@ -1,6 +1,7 @@
-import https from 'https';
 import { GITHUB_API_BASE, REPO_OWNER, REPO_NAME } from '../config.js';
 import type { GitHubContentItem, Manifest } from '../types.js';
+import { ResponseParseError } from '../errors.js';
+import { fetchFromGitHub } from '../utils/http.js';
 
 /**
  * GitHub API を使用して利用可能なプロファイル一覧を取得する
@@ -9,55 +10,27 @@ import type { GitHubContentItem, Manifest } from '../types.js';
 export async function getAvailableProfiles(): Promise<string[]> {
   const apiUrl = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/profiles`;
 
-  return new Promise((resolve, reject) => {
-    https.get(apiUrl, {
-      headers: {
-        'User-Agent': 'airc-cli'
-      }
-    }, (res) => {
-      // ステータスコードのチェック
-      if (res.statusCode === 404) {
-        reject(new Error(`profiles ディレクトリが見つかりません。`));
-        return;
-      }
+  try {
+    const data = await fetchFromGitHub(apiUrl, { resourceName: 'profiles' });
 
-      if (res.statusCode === 403) {
-        const resetTime = res.headers['x-ratelimit-reset'];
-        const resetTimeStr = Array.isArray(resetTime) ? resetTime[0] : resetTime;
-        const resetDate = resetTimeStr ? new Date(parseInt(resetTimeStr) * 1000).toLocaleString() : '不明';
-        reject(new Error(`GitHub API のレート制限に達しました。\n次の時刻以降に再試行してください: ${resetDate}`));
-        return;
-      }
+    if (data === null) {
+      throw new Error('Failed to fetch profiles');
+    }
 
-      if (res.statusCode !== 200) {
-        reject(new Error(`GitHub API エラー (${res.statusCode})`));
-        return;
-      }
+    const items: GitHubContentItem[] = JSON.parse(data);
 
-      // レスポンスの読み取り
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
+    // ディレクトリのみを抽出してプロファイル名のリストを作成
+    const profiles = items
+      .filter(item => item.type === 'dir')
+      .map(item => item.name);
 
-      res.on('end', () => {
-        try {
-          const items: GitHubContentItem[] = JSON.parse(data);
-
-          // ディレクトリのみを抽出してプロファイル名のリストを作成
-          const profiles = items
-            .filter(item => item.type === 'dir')
-            .map(item => item.name);
-
-          resolve(profiles);
-        } catch (error) {
-          reject(new Error(`❌ レスポンスのパースエラー: ${error}`));
-        }
-      });
-    }).on('error', (error) => {
-      reject(new Error(`❌ ネットワークエラー: ${error.message}`));
-    });
-  });
+    return profiles;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new ResponseParseError(error);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -75,61 +48,31 @@ export async function getProjectFiles(profile: string): Promise<string[]> {
   async function fetchDirectory(path: string): Promise<void> {
     const apiUrl = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
 
-    return new Promise((resolve, reject) => {
-      https.get(apiUrl, {
-        headers: {
-          'User-Agent': 'airc-cli'
+    try {
+      const data = await fetchFromGitHub(apiUrl, { resourceName: `profiles/${profile}` });
+
+      if (data === null) {
+        throw new Error(`Failed to fetch directory: ${path}`);
+      }
+
+      const items: GitHubContentItem[] = JSON.parse(data);
+
+      // 各アイテムの処理
+      for (const item of items) {
+        if (item.type === 'file') {
+          // ファイルの場合、リストに追加
+          files.push(item.path);
+        } else if (item.type === 'dir') {
+          // ディレクトリの場合、再帰的に取得
+          await fetchDirectory(item.path);
         }
-      }, (res) => {
-        // ステータスコードのチェック
-        if (res.statusCode === 404) {
-          reject(new Error(`プロファイルが見つかりません: ${profile}\n\n利用可能なプロファイルは GitHub リポジトリの profiles/ ディレクトリを確認してください。`));
-          return;
-        }
-
-        if (res.statusCode === 403) {
-          const resetTime = res.headers['x-ratelimit-reset'];
-          const resetTimeStr = Array.isArray(resetTime) ? resetTime[0] : resetTime;
-          const resetDate = resetTimeStr ? new Date(parseInt(resetTimeStr) * 1000).toLocaleString() : '不明';
-          reject(new Error(`GitHub API のレート制限に達しました。\n次の時刻以降に再試行してください: ${resetDate}`));
-          return;
-        }
-
-        if (res.statusCode !== 200) {
-          reject(new Error(`GitHub API エラー (${res.statusCode})`));
-          return;
-        }
-
-        // レスポンスの読み取り
-        let data = '';
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-
-        res.on('end', async () => {
-          try {
-            const items: GitHubContentItem[] = JSON.parse(data);
-
-            // 各アイテムの処理
-            for (const item of items) {
-              if (item.type === 'file') {
-                // ファイルの場合、リストに追加
-                files.push(item.path);
-              } else if (item.type === 'dir') {
-                // ディレクトリの場合、再帰的に取得
-                await fetchDirectory(item.path);
-              }
-            }
-
-            resolve();
-          } catch (error) {
-            reject(new Error(`❌ レスポンスのパースエラー: ${error}`));
-          }
-        });
-      }).on('error', (error) => {
-        reject(new Error(`❌ ネットワークエラー: ${error.message}`));
-      });
-    });
+      }
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new ResponseParseError(error);
+      }
+      throw error;
+    }
   }
 
   // プロファイルディレクトリを起点に再帰取得
@@ -146,49 +89,24 @@ export async function fetchManifest(profile: string): Promise<Manifest | null> {
   const manifestPath = `profiles/${profile}/files.json`;
   const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${manifestPath}`;
 
-  return new Promise((resolve) => {
-    https.get(rawUrl, {
-      headers: {
-        'User-Agent': 'airc-cli'
-      }
-    }, (res) => {
-      // 404 の場合はマニフェストが存在しない
-      if (res.statusCode === 404) {
-        resolve(null);
-        return;
-      }
+  try {
+    // マニフェストが存在しない場合やエラーの場合は null を返す（フォールバック動作）
+    const data = await fetchFromGitHub(rawUrl, { ignoreErrors: true });
 
-      // その他のエラーもマニフェストなしとして扱う（フォールバック）
-      if (res.statusCode !== 200) {
-        resolve(null);
-        return;
-      }
+    if (data === null) {
+      return null;
+    }
 
-      // レスポンスの読み取り
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
+    const manifest: Manifest = JSON.parse(data);
 
-      res.on('end', () => {
-        try {
-          const manifest: Manifest = JSON.parse(data);
+    // バリデーション: version と files が存在するか確認
+    if (!manifest.version || !Array.isArray(manifest.files)) {
+      return null;
+    }
 
-          // バリデーション: version と files が存在するか確認
-          if (!manifest.version || !Array.isArray(manifest.files)) {
-            resolve(null);
-            return;
-          }
-
-          resolve(manifest);
-        } catch (error) {
-          // パースエラーの場合もマニフェストなしとして扱う
-          resolve(null);
-        }
-      });
-    }).on('error', () => {
-      // ネットワークエラーの場合もマニフェストなしとして扱う
-      resolve(null);
-    });
-  });
+    return manifest;
+  } catch (error) {
+    // パースエラーの場合もマニフェストなしとして扱う
+    return null;
+  }
 }

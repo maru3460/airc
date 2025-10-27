@@ -1,6 +1,7 @@
 import { access, mkdir, writeFile, chmod } from 'fs/promises';
 import { dirname } from 'path';
 import readline from 'readline';
+import { FileOperationError } from '../errors.js';
 
 /**
  * ファイルが存在するかチェックする
@@ -20,9 +21,7 @@ export async function fileExists(filePath: string): Promise<boolean> {
     }
 
     // その他のエラー（権限エラーなど）はスローする
-    throw new Error(
-      `ファイルアクセスエラー: ${filePath} (${error.code}: ${error.message})`
-    );
+    throw new FileOperationError('access', filePath, error.code, error.message);
   }
 }
 
@@ -63,15 +62,11 @@ export async function ensureDir(filePath: string): Promise<void> {
 
     // EACCES エラー（権限なし）
     if (error.code === 'EACCES') {
-      throw new Error(
-        `ディレクトリ作成の権限がありません: ${dir}`
-      );
+      throw new FileOperationError('mkdir', dir, 'EACCES', '権限がありません');
     }
 
     // その他のエラー
-    throw new Error(
-      `ディレクトリ作成に失敗しました: ${dir} (${error.message})`
-    );
+    throw new FileOperationError('mkdir', dir, error.code, error.message);
   }
 }
 
