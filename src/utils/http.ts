@@ -1,6 +1,3 @@
-import https from 'https';
-import type { IncomingMessage } from 'http';
-
 /**
  * GitHub API または raw.githubusercontent.com から HTTPS GET リクエストを実行する共通関数
  *
@@ -20,63 +17,49 @@ export async function fetchFromGitHub(
 ): Promise<string | null> {
   const { resourceName, ignoreErrors = false } = options;
 
-  return new Promise((resolve, reject) => {
-    https.get(url, {
+  try {
+    const response = await fetch(url, {
       headers: {
         'User-Agent': 'airc-cli'
       }
-    }, (res) => {
-      // 404 Not Found
-      if (res.statusCode === 404) {
-        if (ignoreErrors) {
-          resolve(null);
-          return;
-        }
-        reject(new Error(`リソースが見つかりません: ${resourceName || url}`));
-        return;
-      }
-
-      // 403 Forbidden (GitHub API レート制限)
-      if (res.statusCode === 403) {
-        if (ignoreErrors) {
-          resolve(null);
-          return;
-        }
-        const resetTime = Array.isArray(res.headers['x-ratelimit-reset'])
-          ? res.headers['x-ratelimit-reset'][0]
-          : res.headers['x-ratelimit-reset'];
-        const resetDate = resetTime ? new Date(parseInt(resetTime) * 1000) : new Date();
-        reject(new Error(`GitHub API のレート制限に達しました。次の時刻以降に再試行してください: ${resetDate.toLocaleString()}`));
-        return;
-      }
-
-      // その他の HTTP エラー
-      if (res.statusCode !== 200) {
-        if (ignoreErrors) {
-          resolve(null);
-          return;
-        }
-        reject(new Error(`GitHub API エラー (${res.statusCode})`));
-        return;
-      }
-
-      // レスポンスボディの読み取り
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      res.on('end', () => {
-        resolve(data);
-      });
-    }).on('error', (error) => {
-      if (ignoreErrors) {
-        resolve(null);
-        return;
-      }
-      reject(new Error(`ネットワークエラー: ${error.message}`));
     });
-  });
+
+    // 404 Not Found
+    if (response.status === 404) {
+      if (ignoreErrors) {
+        return null;
+      }
+      throw new Error(`リソースが見つかりません: ${resourceName || url}`);
+    }
+
+    // 403 Forbidden (GitHub API レート制限)
+    if (response.status === 403) {
+      if (ignoreErrors) {
+        return null;
+      }
+      const resetTime = response.headers.get('x-ratelimit-reset');
+      const resetDate = resetTime ? new Date(parseInt(resetTime) * 1000) : new Date();
+      throw new Error(`GitHub API のレート制限に達しました。次の時刻以降に再試行してください: ${resetDate.toLocaleString()}`);
+    }
+
+    // その他の HTTP エラー
+    if (!response.ok) {
+      if (ignoreErrors) {
+        return null;
+      }
+      throw new Error(`GitHub API エラー (${response.status})`);
+    }
+
+    return await response.text();
+  } catch (error) {
+    if (ignoreErrors) {
+      return null;
+    }
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`ネットワークエラー: ${error}`);
+  }
 }
 
 /**
@@ -102,66 +85,44 @@ export async function downloadFromGitHub(
   url: string,
   maxSize: number
 ): Promise<DownloadResponse> {
-  return new Promise((resolve) => {
-    https.get(url, {
+  try {
+    const response = await fetch(url, {
       headers: {
         'User-Agent': 'airc-cli'
       }
-    }, (res: IncomingMessage) => {
-      // HTTP ステータスコードの確認
-      if (res.statusCode !== 200) {
-        resolve({
-          statusCode: res.statusCode ?? 0,
-          errorReason: `HTTP ${res.statusCode}`
-        });
-        return;
-      }
-
-      // Content-Length ヘッダーでファイルサイズをチェック
-      const contentLength = res.headers['content-length'];
-      if (contentLength) {
-        const fileSize = parseInt(contentLength, 10);
-        if (fileSize > maxSize) {
-          res.destroy(); // ダウンロードを中止
-          resolve({
-            statusCode: 413, // Payload Too Large
-            errorReason: `ファイルサイズ超過 (${(fileSize / 1024 / 1024).toFixed(2)}MB)`
-          });
-          return;
-        }
-      }
-
-      // レスポンスのストリーム処理
-      let data = '';
-      let downloadedSize = 0;
-
-      res.on('data', (chunk: Buffer) => {
-        downloadedSize += chunk.length;
-
-        // ストリーム中のサイズチェック（Content-Length がない場合の対策）
-        if (downloadedSize > maxSize) {
-          res.destroy(); // ダウンロードを中止
-          resolve({
-            statusCode: 413, // Payload Too Large
-            errorReason: `ファイルサイズ超過 (${(downloadedSize / 1024 / 1024).toFixed(2)}MB)`
-          });
-          return;
-        }
-
-        data += chunk;
-      });
-
-      res.on('end', () => {
-        resolve({
-          statusCode: 200,
-          data
-        });
-      });
-    }).on('error', (error: Error) => {
-      resolve({
-        statusCode: 0,
-        errorReason: `ネットワークエラー: ${error.message}`
-      });
     });
-  });
+
+    // HTTP ステータスコードの確認
+    if (!response.ok) {
+      return {
+        statusCode: response.status,
+        errorReason: `HTTP ${response.status}`
+      };
+    }
+
+    // Content-Length ヘッダーでファイルサイズをチェック
+    const contentLength = response.headers.get('content-length');
+    if (contentLength) {
+      const fileSize = parseInt(contentLength, 10);
+      if (fileSize > maxSize) {
+        return {
+          statusCode: 413, // Payload Too Large
+          errorReason: `ファイルサイズ超過 (${(fileSize / 1024 / 1024).toFixed(2)}MB)`
+        };
+      }
+    }
+
+    // レスポンスボディの取得
+    const data = await response.text();
+
+    return {
+      statusCode: 200,
+      data
+    };
+  } catch (error) {
+    return {
+      statusCode: 0,
+      errorReason: `ネットワークエラー: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
 }
