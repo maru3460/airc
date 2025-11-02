@@ -1,7 +1,7 @@
 import { access, mkdir, writeFile, chmod } from 'fs/promises';
 import { dirname } from 'path';
 import readline from 'readline';
-import { FileOperationError } from '../errors.js';
+import { EMOJI } from '../emoji.js';
 
 /**
  * ファイルが存在するかチェックする
@@ -21,7 +21,7 @@ export async function fileExists(filePath: string): Promise<boolean> {
     }
 
     // その他のエラー（権限エラーなど）はスローする
-    throw new FileOperationError('access', filePath, error.code, error.message);
+    throw new Error(`ファイル操作エラー (access): ${filePath} (${error.code}: ${error.message})`);
   }
 }
 
@@ -62,11 +62,11 @@ export async function ensureDir(filePath: string): Promise<void> {
 
     // EACCES エラー（権限なし）
     if (error.code === 'EACCES') {
-      throw new FileOperationError('mkdir', dir, 'EACCES', '権限がありません');
+      throw new Error(`ファイル操作エラー (mkdir): ${dir} (EACCES: 権限がありません)`);
     }
 
     // その他のエラー
-    throw new FileOperationError('mkdir', dir, error.code, error.message);
+    throw new Error(`ファイル操作エラー (mkdir): ${dir} (${error.code}: ${error.message})`);
   }
 }
 
@@ -87,7 +87,7 @@ export async function saveFile(filePath: string, content: string): Promise<void>
     // Windows などでパーミッション設定がサポートされていない場合は無視
     if (error.code !== 'ENOTSUP' && error.code !== 'EPERM') {
       // 重大なエラーではないので警告のみ
-      console.warn(`⚠ パーミッション設定に失敗しました: ${filePath}`);
+      console.warn(`${EMOJI.WARNING} パーミッション設定に失敗しました: ${filePath}`);
     }
   }
 }

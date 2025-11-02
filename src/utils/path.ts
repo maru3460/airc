@@ -1,5 +1,4 @@
 import { isAbsolute } from 'path';
-import { PathValidationError } from '../errors.js';
 
 /**
  * パスにディレクトリトラバーサル攻撃のパターンが含まれているか検証する
@@ -42,25 +41,21 @@ export function isValidPath(path: string): boolean {
  * @param githubPath GitHub リポジトリ内のパス (例: "profiles/default/.github/chatmodes/file.md")
  * @param profile プロファイル名
  * @returns ローカルパス (例: ".github/chatmodes/file.md")
- * @throws PathValidationError パス変換に失敗した場合（プレフィックスが存在しない、または空パスになる場合）
+ * @throws Error パス変換に失敗した場合（プレフィックスが存在しない、または空パスになる場合）
  */
 export function toLocalPath(githubPath: string, profile: string): string {
   const prefix = `profiles/${profile}/`;
 
   // プレフィックスが存在しない場合はエラー
   if (!githubPath.startsWith(prefix)) {
-    throw new PathValidationError(
-      `無効なGitHubパス: "${githubPath}" (期待: "${prefix}")`
-    );
+    throw new Error(`無効なGitHubパス: "${githubPath}" (期待: "${prefix}")`);
   }
 
   const localPath = githubPath.replace(prefix, '');
 
   // 空パスの検証
   if (localPath.trim() === '') {
-    throw new PathValidationError(
-      `パス変換結果が空: "${githubPath}"`
-    );
+    throw new Error(`パス変換結果が空: "${githubPath}"`);
   }
 
   return localPath;

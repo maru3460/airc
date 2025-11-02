@@ -3,7 +3,7 @@ import { fileExists, askOverwrite, ensureDir, saveFile } from '../utils/fs.js';
 import { isValidPath, toLocalPath } from '../utils/path.js';
 import { downloadFromGitHub } from '../utils/http.js';
 import type { DownloadResult } from '../types.js';
-import { PathValidationError } from '../errors.js';
+import { EMOJI } from '../emoji.js';
 
 /**
  * GitHub からファイルをダウンロードする
@@ -31,9 +31,9 @@ export async function downloadFile(
 
   // パスバリデーション（セキュリティチェック）
   if (!isValidPath(localPath)) {
-    const error = new PathValidationError(localPath);
-    console.log(`✗ ${error.message}`);
-    return { status: 'error', reason: error.message };
+    const errorMsg = `不正なパスが検出されました: ${localPath}`;
+    console.log(`${EMOJI.ERROR} ${errorMsg}`);
+    return { status: 'error', reason: errorMsg };
   }
 
   // ファイル存在チェック
@@ -43,7 +43,6 @@ export async function downloadFile(
   if (exists && !force) {
     const shouldOverwrite = await askOverwrite(localPath);
     if (!shouldOverwrite) {
-      console.log(`⊘ スキップ: ${localPath}`);
       return { status: 'skipped' };
     }
   }
@@ -59,11 +58,11 @@ export async function downloadFile(
     if (response.statusCode === 413) {
       // ファイルサイズ超過
       console.log(
-        `✗ ファイルサイズ超過 ${localPath}: ${response.errorReason} (上限: ${MAX_FILE_SIZE / 1024 / 1024}MB)`
+        `${EMOJI.ERROR} ファイルサイズ超過 ${localPath}: ${response.errorReason} (上限: ${MAX_FILE_SIZE / 1024 / 1024}MB)`
       );
     } else {
       // その他のエラー
-      console.log(`✗ ダウンロード失敗 ${localPath}: ${response.errorReason}`);
+      console.log(`${EMOJI.ERROR} ダウンロード失敗 ${localPath}: ${response.errorReason}`);
     }
     return { status: 'error', reason: response.errorReason || 'Unknown error' };
   }
@@ -71,10 +70,9 @@ export async function downloadFile(
   // ファイルへの書き込み
   try {
     await saveFile(localPath, response.data!);
-    console.log(`✓ ダウンロード完了: ${localPath}`);
     return { status: 'success' };
   } catch (error) {
-    console.log(`✗ 書き込み失敗 ${localPath}: ${error}`);
+    console.log(`${EMOJI.ERROR} 書き込み失敗 ${localPath}: ${error}`);
     return { status: 'error', reason: `書き込み失敗: ${error}` };
   }
 }

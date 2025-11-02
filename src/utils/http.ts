@@ -1,11 +1,5 @@
 import https from 'https';
 import type { IncomingMessage } from 'http';
-import {
-  GitHubNotFoundError,
-  GitHubRateLimitError,
-  GitHubApiError,
-  NetworkError
-} from '../errors.js';
 
 /**
  * GitHub API または raw.githubusercontent.com から HTTPS GET リクエストを実行する共通関数
@@ -13,10 +7,7 @@ import {
  * @param url リクエスト先の完全な URL
  * @param options オプション設定
  * @returns レスポンスボディの文字列
- * @throws GitHubNotFoundError - リソースが見つからない場合（404）
- * @throws GitHubRateLimitError - GitHub API のレート制限に達した場合（403）
- * @throws GitHubApiError - その他の HTTP エラー
- * @throws NetworkError - ネットワークエラー
+ * @throws Error - リソースが見つからない場合（404）、レート制限、その他のHTTPエラー、ネットワークエラー
  */
 export async function fetchFromGitHub(
   url: string,
@@ -41,7 +32,7 @@ export async function fetchFromGitHub(
           resolve(null);
           return;
         }
-        reject(new GitHubNotFoundError(resourceName || url));
+        reject(new Error(`リソースが見つかりません: ${resourceName || url}`));
         return;
       }
 
@@ -51,7 +42,11 @@ export async function fetchFromGitHub(
           resolve(null);
           return;
         }
-        reject(new GitHubRateLimitError(res.headers));
+        const resetTime = Array.isArray(res.headers['x-ratelimit-reset'])
+          ? res.headers['x-ratelimit-reset'][0]
+          : res.headers['x-ratelimit-reset'];
+        const resetDate = resetTime ? new Date(parseInt(resetTime) * 1000) : new Date();
+        reject(new Error(`GitHub API のレート制限に達しました。次の時刻以降に再試行してください: ${resetDate.toLocaleString()}`));
         return;
       }
 
@@ -61,7 +56,7 @@ export async function fetchFromGitHub(
           resolve(null);
           return;
         }
-        reject(new GitHubApiError(res.statusCode));
+        reject(new Error(`GitHub API エラー (${res.statusCode})`));
         return;
       }
 
@@ -79,7 +74,7 @@ export async function fetchFromGitHub(
         resolve(null);
         return;
       }
-      reject(new NetworkError(error));
+      reject(new Error(`ネットワークエラー: ${error.message}`));
     });
   });
 }

@@ -1,6 +1,5 @@
 import { GITHUB_API_BASE, REPO_OWNER, REPO_NAME } from '../config.js';
 import type { GitHubContentItem, Manifest } from '../types.js';
-import { ResponseParseError } from '../errors.js';
 import { fetchFromGitHub } from '../utils/http.js';
 
 /**
@@ -27,7 +26,7 @@ export async function getAvailableProfiles(): Promise<string[]> {
     return profiles;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new ResponseParseError(error);
+      throw new Error(`レスポンスのパースに失敗しました: ${error}`);
     }
     throw error;
   }
@@ -69,7 +68,7 @@ export async function getProjectFiles(profile: string): Promise<string[]> {
       }
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new ResponseParseError(error);
+        throw new Error(`レスポンスのパースに失敗しました: ${error}`);
       }
       throw error;
     }

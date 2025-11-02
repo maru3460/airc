@@ -1,59 +1,30 @@
-/**
- * ダウンロード結果の種類
- */
+// ダウンロード結果
 export type DownloadResult =
   | { status: 'success' }
   | { status: 'skipped' }
   | { status: 'error'; reason: string };
 
-/**
- * CLI オプション
- */
+// CLI オプション
 export interface CliOptions {
-  /** プロファイル名 */
-  profile: string;
-  /** 強制上書きフラグ */
-  force: boolean;
-  /** ヘルプ表示フラグ */
-  help: boolean;
-  /** プロファイル一覧表示フラグ */
-  list: boolean;
+  profile: string; // プロファイル名
+  force: boolean; // 強制上書きフラグ
+  help: boolean; // ヘルプ表示フラグ
+  list: boolean; // プロファイル一覧表示フラグ
 }
 
-/**
- * ダウンロード統計
- */
-export interface DownloadStats {
-  /** 成功件数 */
-  downloaded: number;
-  /** スキップ件数 */
-  skipped: number;
-  /** エラー件数 */
-  errors: number;
-  /** 失敗したファイルの詳細リスト */
-  failed: Array<{ file: string; reason: string }>;
-}
+// ダウンロードエラー情報
+export type DownloadErrors = Array<{ file: string; reason: string }>;
 
-/**
- * GitHub API レスポンスのアイテム型
- */
+// GitHub API レスポンスのアイテム型
 export interface GitHubContentItem {
-  /** アイテム名 */
-  name: string;
-  /** リポジトリ内のパス */
-  path: string;
-  /** タイプ（file または dir） */
-  type: 'file' | 'dir';
-  /** ダウンロード URL */
-  download_url?: string;
+  name: string; // アイテム名
+  path: string; // リポジトリ内のパス
+  type: 'file' | 'dir'; // タイプ（file または dir）
+  download_url?: string; // ダウンロード URL
 }
 
-/**
- * マニフェストファイル (files.json) の型定義
- */
+// マニフェストファイル (files.json) の型定義
 export interface Manifest {
-  /** マニフェストのバージョン */
-  version: string;
-  /** ファイルパスのリスト */
-  files: string[];
+  version: string; // マニフェストのバージョン
+  files: string[]; // ファイルパスのリスト
 }
