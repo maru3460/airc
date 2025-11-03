@@ -1,9 +1,9 @@
-import { getAvailableProfiles } from '../../github/api.js';
+import { getAvailableProfiles } from '../../api/getAvailableProfiles.js';
 import { DEFAULT_PROJECT } from '../../config.js';
 import { EMOJI } from '../../emoji.js';
 
-// プロファイルのダウンロード
-export default async function displayAvailableProfiles(): Promise<void> {
+// プロファイル一覧表示
+export default async function listProfiles(): Promise<void> {
   console.log(`利用可能なプロファイル一覧を取得中...`);
 
   const profiles = await getAvailableProfiles();

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { parseArgs } from './cli/yargs.js';
-import downloadProfiles from './cli/commands/downloadProfiles.js';
-import displayAvailableProfiles from './cli/commands/displayAvailableProfiles.js';
+import syncProfiles from './cli/commands/syncProfiles.js';
+import listProfiles from './cli/commands/listProfiles.js';
 import { EMOJI } from './emoji.js';
 
 // Ctrl+C のハンドリング
@@ -15,11 +15,11 @@ async function main(): Promise<void> {
   const options = parseArgs(process.argv);
 
   if (options.list) {
-    await displayAvailableProfiles();
+    await listProfiles();
     return;
   }
 
-  await downloadProfiles(options)
+  await syncProfiles(options)
 }
 
 main()
