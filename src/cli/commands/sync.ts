@@ -1,14 +1,15 @@
+import type { Argv, CommandModule } from 'yargs';
 import { getProjectFiles } from '../../api/getProjectFiles.js';
 import { fetchManifest } from '../../api/fetchManifest.js';
 import { downloadFileContent } from '../../api/downloadFileContent.js';
 import { fileExists, askOverwrite, ensureDir, saveFile } from '../../utils/fs.js';
 import { isValidPath, toLocalPath } from '../../utils/path.js';
-import { MAX_FILE_SIZE } from '../../config.js';
-import type { CliOptions, DownloadErrors } from '../../types.js';
+import { MAX_FILE_SIZE, DEFAULT_PROJECT } from '../../config.js';
+import type { SyncOptions, DownloadErrors } from '../../types.js';
 import { EMOJI } from '../../emoji.js';
 
 // プロファイルの同期（手続き的処理）
-export default async function syncProfiles(options: CliOptions): Promise<void> {
+async function syncCommand(options: SyncOptions): Promise<void> {
   const { profile, force } = options;
 
   console.log(`${EMOJI.DOWNLOAD} プロファイル「${profile}」の設定をダウンロード中...`);
@@ -105,3 +106,36 @@ export default async function syncProfiles(options: CliOptions): Promise<void> {
     console.log(`${EMOJI.SUCCESS} 完了しました！`);
   }
 }
+
+// yargs コマンドビルダー
+const syncCommandBuilder: CommandModule<{}, SyncOptions> = {
+  command: 'sync',
+  describe: 'プロファイルの設定ファイルをダウンロード',
+  builder: (yargs: Argv) => {
+    return yargs
+      .option('profile', {
+        alias: 'p',
+        type: 'string',
+        description: 'プロファイル名を指定',
+        default: DEFAULT_PROJECT
+      })
+      .option('force', {
+        alias: 'f',
+        type: 'boolean',
+        description: '既存ファイルを強制上書き',
+        default: false
+      })
+      .example('$0 sync', 'デフォルトプロファイルをダウンロード')
+      .example('$0 sync -p myprofile', '"myprofile" をダウンロード')
+      .example('$0 sync -f', '既存ファイルを強制上書き') as Argv<SyncOptions>;
+  },
+  handler: async (argv) => {
+    const options: SyncOptions = {
+      profile: argv.profile,
+      force: argv.force
+    };
+    await syncCommand(options);
+  }
+};
+
+export default syncCommandBuilder;

@@ -1,9 +1,11 @@
+import type { Argv, CommandModule } from 'yargs';
 import { getAvailableProfiles } from '../../api/getAvailableProfiles.js';
 import { DEFAULT_PROJECT } from '../../config.js';
 import { EMOJI } from '../../emoji.js';
+import type { ListOptions } from '../../types.js';
 
 // プロファイル一覧表示
-export default async function listProfiles(): Promise<void> {
+async function listCommand(): Promise<void> {
   console.log(`利用可能なプロファイル一覧を取得中...`);
 
   const profiles = await getAvailableProfiles();
@@ -23,5 +25,20 @@ export default async function listProfiles(): Promise<void> {
     }
   });
 
-  console.log(`\n使用例: airc -p ${profiles[0]}`);
+  console.log(`\n使用例: airc sync -p ${profiles[0]}`);
 }
+
+// yargs コマンドビルダー
+const listCommandBuilder: CommandModule<{}, ListOptions> = {
+  command: 'list',
+  describe: '利用可能なプロファイル一覧を表示',
+  builder: (yargs: Argv) => {
+    return yargs
+      .example('$0 list', 'プロファイル一覧を表示') as Argv<ListOptions>;
+  },
+  handler: async () => {
+    await listCommand();
+  }
+};
+
+export default listCommandBuilder;

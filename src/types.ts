@@ -4,12 +4,15 @@ export type DownloadResult =
   | { status: 'skipped' }
   | { status: 'error'; reason: string };
 
-// CLI オプション
-export interface CliOptions {
+// syncコマンド用のオプション
+export interface SyncOptions {
   profile: string; // プロファイル名
   force: boolean; // 強制上書きフラグ
-  help: boolean; // ヘルプ表示フラグ
-  list: boolean; // プロファイル一覧表示フラグ
+}
+
+// listコマンド用のオプション（現時点ではオプションなし）
+export interface ListOptions {
+  // 将来的に --json などを追加可能
 }
 
 // ダウンロードエラー情報
