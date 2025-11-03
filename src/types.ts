@@ -8,6 +8,7 @@ export type DownloadResult =
 export interface SyncOptions {
   profile: string; // プロファイル名
   force: boolean; // 強制上書きフラグ
+  list: boolean; // プロファイル一覧表示フラグ
 }
 
 // listコマンド用のオプション（現時点ではオプションなし）
@@ -30,4 +31,15 @@ export interface GitHubContentItem {
 export interface Manifest {
   version: string; // マニフェストのバージョン
   files: string[]; // ファイルパスのリスト
+}
+
+// ローカルプロファイル設定
+export interface LocalConfig {
+  current: string; // アクティブプロファイル名
+}
+
+// .sync ファイルのパターン
+export interface SyncPattern {
+  include: string[]; // 含めるパターン
+  exclude: string[]; // 除外するパターン
 }

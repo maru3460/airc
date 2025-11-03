@@ -12,3 +12,10 @@ export const DEFAULT_PROJECT = "default";
 
 // ファイルサイズ制限（1MB）
 export const MAX_FILE_SIZE = 1 * 1024 * 1024;
+
+// ローカルプロファイル関連の定数
+export const AIRC_DIR = ".airc";
+export const PROFILES_DIR = "profiles";
+export const CONFIG_FILE = "config.json";
+export const SYNC_FILE = ".sync";
+export const DEFAULT_PROFILE = "main";

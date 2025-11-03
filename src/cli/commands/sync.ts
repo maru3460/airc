@@ -7,6 +7,31 @@ import { isValidPath, toLocalPath } from '../../utils/path.js';
 import { MAX_FILE_SIZE, DEFAULT_PROJECT } from '../../config.js';
 import type { SyncOptions, DownloadErrors } from '../../types.js';
 import { EMOJI } from '../../emoji.js';
+import { getAvailableProfiles } from '../../api/getAvailableProfiles.js';
+
+// リモートプロファイル一覧表示
+async function listRemoteProfiles(): Promise<void> {
+  console.log(`${EMOJI.SEARCH} リモートプロファイル一覧を取得中...`);
+
+  const profiles = await getAvailableProfiles();
+
+  if (profiles.length === 0) {
+    console.log(`${EMOJI.WARNING} リモートプロファイルが見つかりませんでした。`);
+    return;
+  }
+
+  console.log(`\n${EMOJI.SUCCESS} リモートプロファイル (${profiles.length} 件):\n`);
+
+  profiles.forEach(profile => {
+    if (profile === DEFAULT_PROJECT) {
+      console.log(`  - ${profile} (デフォルト)`);
+    } else {
+      console.log(`  - ${profile}`);
+    }
+  });
+
+  console.log(`\n使用例: airc sync ${profiles[0]}`);
+}
 
 // プロファイルの同期（手続き的処理）
 async function syncProfile(options: SyncOptions): Promise<void> {
@@ -109,12 +134,11 @@ async function syncProfile(options: SyncOptions): Promise<void> {
 
 // yargs コマンドビルダー
 const syncCommandBuilder: CommandModule<{}, SyncOptions> = {
-  command: 'sync',
+  command: 'sync [profile]',
   describe: 'プロファイルの設定ファイルをダウンロード',
   builder: (yargs: Argv) => {
     return yargs
-      .option('profile', {
-        alias: 'p',
+      .positional('profile', {
         type: 'string',
         description: 'プロファイル名を指定',
         default: DEFAULT_PROJECT
@@ -125,14 +149,29 @@ const syncCommandBuilder: CommandModule<{}, SyncOptions> = {
         description: '既存ファイルを強制上書き',
         default: false
       })
+      .option('list', {
+        alias: 'l',
+        type: 'boolean',
+        description: 'リモートプロファイル一覧を表示',
+        default: false
+      })
       .example('$0 sync', 'デフォルトプロファイルをダウンロード')
-      .example('$0 sync -p myprofile', '"myprofile" をダウンロード')
-      .example('$0 sync -f', '既存ファイルを強制上書き') as Argv<SyncOptions>;
+      .example('$0 sync myprofile', '"myprofile" をダウンロード')
+      .example('$0 sync --force', '既存ファイルを強制上書き')
+      .example('$0 sync --list', 'リモートプロファイル一覧を表示') as Argv<SyncOptions>;
   },
   handler: async (argv) => {
+    // --list オプションが指定された場合はプロファイル一覧を表示
+    if (argv.list) {
+      await listRemoteProfiles();
+      return;
+    }
+
+    // 通常の同期処理
     const options: SyncOptions = {
       profile: argv.profile,
-      force: argv.force
+      force: argv.force,
+      list: argv.list
     };
     await syncProfile(options);
   }

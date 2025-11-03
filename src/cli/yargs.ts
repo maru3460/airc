@@ -4,7 +4,6 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import syncCommandBuilder from './commands/sync.js';
-import listCommandBuilder from './commands/list.js';
 
 // package.json からバージョンを読み込む
 const __filename = fileURLToPath(import.meta.url);
@@ -33,7 +32,6 @@ export function createYargsInstance(args: string[]) {
     .alias('h', 'help')
     .demandCommand(1, 'コマンドを指定してください。詳細は --help を参照')
     .command(syncCommandBuilder)
-    .command(listCommandBuilder)
     .epilogue('詳細: https://github.com/maru3460/airc')
     .strict()  // 未定義のコマンドやオプションでエラー
     .parse();
