@@ -9,7 +9,7 @@ import type { SyncOptions, DownloadErrors } from '../../types.js';
 import { EMOJI } from '../../emoji.js';
 
 // プロファイルの同期（手続き的処理）
-async function syncCommand(options: SyncOptions): Promise<void> {
+async function syncProfile(options: SyncOptions): Promise<void> {
   const { profile, force } = options;
 
   console.log(`${EMOJI.DOWNLOAD} プロファイル「${profile}」の設定をダウンロード中...`);
@@ -134,7 +134,7 @@ const syncCommandBuilder: CommandModule<{}, SyncOptions> = {
       profile: argv.profile,
       force: argv.force
     };
-    await syncCommand(options);
+    await syncProfile(options);
   }
 };
 

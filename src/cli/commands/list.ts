@@ -5,7 +5,7 @@ import { EMOJI } from '../../emoji.js';
 import type { ListOptions } from '../../types.js';
 
 // プロファイル一覧表示
-async function listCommand(): Promise<void> {
+async function listProfiles(): Promise<void> {
   console.log(`利用可能なプロファイル一覧を取得中...`);
 
   const profiles = await getAvailableProfiles();
@@ -37,7 +37,7 @@ const listCommandBuilder: CommandModule<{}, ListOptions> = {
       .example('$0 list', 'プロファイル一覧を表示') as Argv<ListOptions>;
   },
   handler: async () => {
-    await listCommand();
+    await listProfiles();
   }
 };
 
