@@ -8,6 +8,9 @@ import { MAX_FILE_SIZE, DEFAULT_PROJECT } from '../../config.js';
 import type { SyncOptions, DownloadErrors } from '../../types.js';
 import { EMOJI } from '../../emoji.js';
 import { getAvailableProfiles } from '../../api/getAvailableProfiles.js';
+import { getProfilePath } from '../../utils/profiles.js';
+import { readLocalConfig, writeLocalConfig } from '../../utils/config.js';
+import { restoreFromProfile } from '../../utils/syncFiles.js';
 
 // リモートプロファイル一覧表示
 async function listRemoteProfiles(): Promise<void> {
@@ -53,19 +56,22 @@ async function syncProfile(options: SyncOptions): Promise<void> {
 
   const errors: DownloadErrors = [];
 
+  // プロファイルディレクトリのパスを取得（.airc/profiles/{profile}/）
+  const profilePath = getProfilePath(profile);
+
   // 各ファイルをダウンロード
   for (const filePath of files) {
-    // ローカルパスの生成
-    const localPath = toLocalPath(filePath, profile);
+    // ローカルパスの生成（profiles/{profile}/ プレフィックスを除去）
+    const relativePath = toLocalPath(filePath, profile);
 
     // README.md は除外
-    if (localPath.endsWith('README.md')) {
+    if (relativePath.endsWith('README.md')) {
       continue;
     }
 
     // パスバリデーション（セキュリティチェック）
-    if (!isValidPath(localPath)) {
-      const errorMsg = `不正なパスが検出されました: ${localPath}`;
+    if (!isValidPath(relativePath)) {
+      const errorMsg = `不正なパスが検出されました: ${relativePath}`;
       console.log(`${EMOJI.ERROR} ${errorMsg}`);
       errors.push({
         file: filePath.replace(`profiles/${profile}/`, ''),
@@ -73,6 +79,9 @@ async function syncProfile(options: SyncOptions): Promise<void> {
       });
       continue;
     }
+
+    // プロファイルディレクトリ内のフルパス（.airc/profiles/{profile}/{relativePath}）
+    const localPath = `${profilePath}/${relativePath}`;
 
     // ファイル内容ダウンロード（宣言的な道具を呼び出す）
     const response = await downloadFileContent(filePath);
@@ -82,11 +91,11 @@ async function syncProfile(options: SyncOptions): Promise<void> {
       if (response.statusCode === 413) {
         // ファイルサイズ超過
         console.log(
-          `${EMOJI.ERROR} ファイルサイズ超過 ${localPath}: ${response.errorReason} (上限: ${MAX_FILE_SIZE / 1024 / 1024}MB)`
+          `${EMOJI.ERROR} ファイルサイズ超過 ${relativePath}: ${response.errorReason} (上限: ${MAX_FILE_SIZE / 1024 / 1024}MB)`
         );
       } else {
         // その他のエラー
-        console.log(`${EMOJI.ERROR} ダウンロード失敗 ${localPath}: ${response.errorReason}`);
+        console.log(`${EMOJI.ERROR} ダウンロード失敗 ${relativePath}: ${response.errorReason}`);
       }
       errors.push({
         file: filePath.replace(`profiles/${profile}/`, ''),
@@ -113,7 +122,7 @@ async function syncProfile(options: SyncOptions): Promise<void> {
     try {
       await saveFile(localPath, response.data!);
     } catch (error) {
-      console.log(`${EMOJI.ERROR} 書き込み失敗 ${localPath}: ${error}`);
+      console.log(`${EMOJI.ERROR} 書き込み失敗 ${relativePath}: ${error}`);
       errors.push({
         file: filePath.replace(`profiles/${profile}/`, ''),
         reason: `書き込み失敗: ${error}`
@@ -128,7 +137,19 @@ async function syncProfile(options: SyncOptions): Promise<void> {
       console.log(`  - ${file} (${reason})`);
     });
   } else {
-    console.log(`${EMOJI.SUCCESS} 完了しました！`);
+    console.log(`${EMOJI.SUCCESS} プロファイル「${profile}」を .airc/profiles/${profile}/ にダウンロードしました！`);
+  }
+
+  // ダウンロード成功後、アクティブプロファイルに設定
+  if (errors.length === 0) {
+    console.log(`${EMOJI.SYNC} プロファイル「${profile}」をアクティブに設定中...`);
+    const config = await readLocalConfig();
+    config.current = profile;
+    await writeLocalConfig(config);
+
+    // 実ファイルへ展開
+    console.log(`${EMOJI.SYNC} 実ファイルへ展開中...`);
+    await restoreFromProfile(profile, { force });
   }
 }
 
