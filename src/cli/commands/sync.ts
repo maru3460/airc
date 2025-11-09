@@ -2,9 +2,9 @@ import type { Argv, CommandModule } from 'yargs';
 import { getProjectFiles } from '../../api/getProjectFiles.js';
 import { fetchManifest } from '../../api/fetchManifest.js';
 import { downloadFileContent } from '../../api/downloadFileContent.js';
-import { fileExists, askOverwrite, ensureDir, saveFile } from '../../utils/fs.js';
+import { ensureDir, saveFile } from '../../utils/fs.js';
 import { isValidPath, toLocalPath } from '../../utils/path.js';
-import { MAX_FILE_SIZE, DEFAULT_PROJECT } from '../../config.js';
+import { MAX_FILE_SIZE } from '../../config.js';
 import type { SyncOptions, DownloadErrors } from '../../types.js';
 import { EMOJI } from '../../emoji.js';
 import { getAvailableProfiles } from '../../api/getAvailableProfiles.js';
@@ -26,11 +26,7 @@ async function listRemoteProfiles(): Promise<void> {
   console.log(`\n${EMOJI.SUCCESS} リモートプロファイル (${profiles.length} 件):\n`);
 
   profiles.forEach(profile => {
-    if (profile === DEFAULT_PROJECT) {
-      console.log(`  - ${profile} (デフォルト)`);
-    } else {
-      console.log(`  - ${profile}`);
-    }
+    console.log(`  - ${profile}`);
   });
 
   console.log(`\n使用例: airc sync ${profiles[0]}`);
@@ -104,17 +100,6 @@ async function syncProfile(options: SyncOptions): Promise<void> {
       continue;
     }
 
-    // ファイル存在チェック
-    const exists = await fileExists(localPath);
-
-    // 既存ファイルの上書き確認処理
-    if (exists && !force) {
-      const shouldOverwrite = await askOverwrite(localPath);
-      if (!shouldOverwrite) {
-        continue; // スキップ
-      }
-    }
-
     // 親ディレクトリの作成
     await ensureDir(localPath);
 
@@ -161,8 +146,7 @@ const syncCommandBuilder: CommandModule<{}, SyncOptions> = {
     return yargs
       .positional('profile', {
         type: 'string',
-        description: 'プロファイル名を指定',
-        default: DEFAULT_PROJECT
+        description: 'プロファイル名を指定'
       })
       .option('force', {
         alias: 'f',
@@ -176,9 +160,8 @@ const syncCommandBuilder: CommandModule<{}, SyncOptions> = {
         description: 'リモートプロファイル一覧を表示',
         default: false
       })
-      .example('$0 sync', 'デフォルトプロファイルをダウンロード')
       .example('$0 sync myprofile', '"myprofile" をダウンロード')
-      .example('$0 sync --force', '既存ファイルを強制上書き')
+      .example('$0 sync myprofile --force', '既存ファイルを強制上書き')
       .example('$0 sync --list', 'リモートプロファイル一覧を表示') as Argv<SyncOptions>;
   },
   handler: async (argv) => {
@@ -186,6 +169,14 @@ const syncCommandBuilder: CommandModule<{}, SyncOptions> = {
     if (argv.list) {
       await listRemoteProfiles();
       return;
+    }
+
+    // profile が指定されていない場合はエラー
+    if (!argv.profile) {
+      console.log(`${EMOJI.ERROR} プロファイル名を指定してください。`);
+      console.log(`使用例: airc sync <profile>`);
+      console.log(`リモートプロファイル一覧: airc sync --list`);
+      process.exit(1);
     }
 
     // 通常の同期処理

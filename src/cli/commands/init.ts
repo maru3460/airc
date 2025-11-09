@@ -1,7 +1,8 @@
 import type { Argv, CommandModule } from 'yargs';
 import { initLocalConfig, isInitialized } from '../../utils/config.js';
-import { initSyncFile } from '../../utils/syncPatterns.js';
+import { initSyncFile, readSyncPatterns } from '../../utils/syncPatterns.js';
 import { createProfile } from '../../utils/profiles.js';
+import { saveToProfile } from '../../utils/syncFiles.js';
 import { DEFAULT_PROFILE } from '../../config.js';
 import { EMOJI } from '../../emoji.js';
 
@@ -27,6 +28,12 @@ async function initializeAirc(): Promise<void> {
   // デフォルトプロファイルの作成
   await createProfile(DEFAULT_PROFILE);
   console.log(`${EMOJI.SUCCESS} デフォルトプロファイル "${DEFAULT_PROFILE}" を作成しました`);
+
+  // 既存の実ファイルをmainプロファイルに保存
+  console.log(`${EMOJI.DOWNLOAD} 既存のファイルをプロファイル "${DEFAULT_PROFILE}" に保存中...`);
+  const patterns = await readSyncPatterns();
+  await saveToProfile(DEFAULT_PROFILE, patterns, { force: true });
+  console.log(`${EMOJI.SUCCESS} 既存のファイルを保存しました`);
 
   console.log(`\n${EMOJI.SUCCESS} 初期化完了！`);
   console.log(`\n次のステップ:`);
