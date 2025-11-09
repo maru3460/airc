@@ -4,6 +4,13 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import syncCommandBuilder from './commands/sync.js';
+import initCommandBuilder from './commands/init.js';
+import listCommandBuilder from './commands/list.js';
+import newCommandBuilder from './commands/new.js';
+import useCommandBuilder from './commands/use.js';
+import renameCommandBuilder from './commands/rename.js';
+import deleteCommandBuilder from './commands/delete.js';
+import clearCommandBuilder from './commands/clear.js';
 
 // package.json からバージョンを読み込む
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +38,13 @@ export function createYargsInstance(args: string[]) {
     .help('h')
     .alias('h', 'help')
     .demandCommand(1, 'コマンドを指定してください。詳細は --help を参照')
+    .command(initCommandBuilder)
+    .command(listCommandBuilder)
+    .command(newCommandBuilder)
+    .command(useCommandBuilder)
+    .command(renameCommandBuilder)
+    .command(deleteCommandBuilder)
+    .command(clearCommandBuilder)
     .command(syncCommandBuilder)
     .epilogue('詳細: https://github.com/maru3460/airc')
     .strict()  // 未定義のコマンドやオプションでエラー
