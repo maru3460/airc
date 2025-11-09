@@ -6,10 +6,12 @@ export const EMOJI = {
   SUCCESS: '✅',
   ERROR: '❌',
   WARNING: '⚠️',
+  INFO: 'ℹ️',
 
   // アクション系
   DOWNLOAD: '🚀',
   SEARCH: '🔍',
+  SYNC: '🔄',
 } as const;
 
 export type EmojiKey = keyof typeof EMOJI;
