@@ -22,8 +22,7 @@ Actモード
 
 テストは`spec/`にある
 apiは`spec/requests/`
-api以外はテストがある場合のみ実行する
-ただし、formやdecoratorなどapiでつくためのファイルはそれ自体のテストがあればそれを実行し、対象のapiのテストも実行する
+api以外は最初にテストがあるかどうか確認し、テストがある場合は実行する
 
 ### .ts, .tsx
 - prettier
@@ -43,11 +42,11 @@ api以外はテストがある場合のみ実行する
 
 ### 実行コマンド
 ```shell
-docker compose exec -e LANG=C.UTF-8 milkyway /bin/bash -l -c "bundle exec rubocop app/controllers/user_controller.rb app/forms/user_form.rb"
-docker compose exec -e RAILS_ENV=test milkyway /bin/bash -l -c "bundle exec rspec spec/requests/work_allotment_spec.rb spec/forms/user_form_spec.rb" # (spec/forms/user_form_spec.rbは存在する場合のみ)
-docker compose exec milkyway_webpack /bin/bash -l -c "yarn prettier --write app/webpacks/applications/users/index.tsx app/webpacks/applications/users/style.scss"
-docker compose exec milkyway_webpack /bin/bash -l -c "yarn lint-with-todo --fix app/webpacks/applications/users/index.tsx"
-docker compose exec milkyway_webpack /bin/bash -l -c "yarn stylelint --fix app/webpacks/applications/users/style.scss"
+bundle exec rubocop app/controllers/user_controller.rb app/forms/user_form.rb
+bundle exec rspec spec/requests/work_allotment_spec.rb spec/forms/user_form_spec.rb # (spec/forms/user_form_spec.rbは存在する場合のみ)
+yarn prettier --write app/webpacks/applications/users/index.tsx app/webpacks/applications/users/style.scss
+yarn lint-with-todo --fix app/webpacks/applications/users/index.tsx
+yarn stylelint --fix app/webpacks/applications/users/style.scss
 ```
 
 ## 注意点
