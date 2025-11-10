@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "files": [
+    ".github/chatmode/light-task.chatmode.md",
+    ".github/chatmode/plan-act-light.chatmode.md",
+    ".github/chatmode/plan-act-nm.chatmode.md",
+    ".github/chatmode/plan-act.chatmode.md",
+    ".github/examples/doc/template.md",
+    ".github/instructions/basic.instructions.md",
+    ".github/instructions/coding_rules.instructions.md",
+    ".github/instructions/tmp/tummu.instructions.md",
+    ".github/instructions/zunda.instructions.md",
+    ".github/prompts/check.prompt.md",
+    ".github/prompts/make_doc.prompt.md",
+    ".github/prompts/review.prompt.md",
+    ".github/prompts/review.staged.prompt.md",
+    ".github/prompts/sow.prompt.md",
+    ".github/prompts/tmp.prompt.md"
+  ]
+}
