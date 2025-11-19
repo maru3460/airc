@@ -11,3 +11,18 @@ bin/
 
 # Temporary files
 .claude/tmp/
+
+# claude code
+/CLAUDE.md
+/.mcp.json
+/.claude/
+!/profiles/**/settings.local.json
+
+# other ai
+/AGENTS.md
+/.github/
+!/.github/pullrequest_template.md
+!/.github/workflows/
+
+# airc
+.airc/

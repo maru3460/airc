@@ -4,7 +4,7 @@
   "type": "module",
   "description": "copilot や claude の設定を簡単に共有するためのツール",
   "bin": {
-    "airc": "./bin/cli.js"
+    "airc": "bin/cli.js"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -12,16 +12,33 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "postinstall": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "node scripts/generate-manifest.js && git add profiles/**/files.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maru3460/airc"
   },
   "author": "maru3460",
   "license": "MIT",
   "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
+    "@types/yargs": "^17.0.33",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "^5.0.0"
   },
   "files": [
     "bin",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "glob": "^11.0.3",
+    "js-yaml": "^4.1.0",
+    "yargs": "^18.0.0"
+  }
 }
