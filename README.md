@@ -1,81 +1,102 @@
 # airc
 
-**airc (AI Resource Configurator)** は、CopilotやClaudeの設定ファイル（`.github/`、`.claude/`、`CLAUDE.md`等）をプロファイル単位で管理・切り替えできるCLIツールです。
+**airc** は、AIツール設定をプロファイルで管理・切り替えるCLIツールです。
 
-## aircについて
-
-aircを使うと、AIツールの設定ファイルを「プロファイル」として保存し、ワンコマンドで切り替えられます。チームで設定を共有したり、用途ごとに設定を使い分けたりできます。
-
-## ユースケース
-
-### 設定を試行錯誤する
-
-新しいClaudeの設定を試しながら、いつでも元に戻せるようにしたいとき：
+## ⚡ クイックスタート
 
 ```bash
-airc new experimental    # 実験用プロファイルを作成
-# ... 設定を編集して試す ...
-airc use default         # 元の設定に戻す
-airc use experimental    # また実験設定に切り替え
+npm install -g @maru3460/airc
+airc init  # 現在の設定を保存
 ```
 
-### チームで設定を共有する
+## 🚀 使い方
 
-チームメンバーと同じClaude設定を使いたいとき：
+### プロファイルを作成・切り替え
+
+```bash
+airc new experimental  # 新しいプロファイルを作成
+airc use experimental  # プロファイルを切り替え
+airc use default       # defaultに戻す
+```
+
+### プロファイル一覧
+
+```bash
+airc list  # 保存されているプロファイルを表示
+```
+
+### リモートプロファイルの利用
+
+```bash
+airc remote owner my-team          # GitHubリポジトリオーナーを設定
+airc remote name team-ai-config    # リポジトリ名を設定
+airc remote standard               # リモートからダウンロード
+```
+
+## 💡 ユースケース
+
+### 設定を安全に試す
+
+```bash
+airc new experimental  # 実験用プロファイルを作成
+airc use experimental  # 実験用プロファイルに切り替え
+# .claude/ や CLAUDE.md を編集
+airc use default       # 元に戻す
+```
+
+### チームで設定を統一
 
 ```bash
 airc remote owner my-team
-airc remote name team-ai-config
-airc remote standard      # チームの標準設定をダウンロード
+airc remote name team-config
+airc remote standard   # チーム標準設定をダウンロード
+airc use standard      # 標準設定に切り替え
 ```
 
-## クイックスタート
+## 📖 CLI Options
 
-```bash
-# インストール
-npm install -g @maru3460/airc
-
-# 初期化
-airc init
-
-# リモートプロファイルをダウンロード
-airc remote default
-```
-
-## コマンド一覧
+### 基本コマンド
 
 | コマンド | 説明 |
 |---------|------|
-| `airc init` | 初期化 |
-| `airc list` | プロファイル一覧 |
-| `airc new <name>` | 新規作成 |
-| `airc use <name>` | 切り替え |
-| `airc rename <old> <new>` | リネーム |
-| `airc delete <name>` | 削除 |
-| `airc clear` | ファイル削除 |
-| `airc restore <name>` | 復元 |
-| `airc remote <name>` | リモートからダウンロード |
+| `airc init` | 現在の設定をdefaultプロファイルとして保存 |
+| `airc list` | プロファイル一覧を表示 |
+| `airc new <name>` | 新しいプロファイルを作成 |
+| `airc use <name>` | プロファイルを切り替え |
 
-詳細は [docs/commands.md](docs/commands.md) を参照してください。
+### 管理コマンド
 
-## コマンドのイメージ図
+| コマンド | 説明 |
+|---------|------|
+| `airc rename <old> <new>` | プロファイル名を変更 |
+| `airc delete <name>` | プロファイルを削除 |
+| `airc clear` | 現在のファイルを削除（プロファイルは保持） |
+| `airc restore <name>` | プロファイルから復元 |
 
-### init
+### リモート連携
 
-![init](assets/コマンド_init.png)
+| コマンド | 説明 |
+|---------|------|
+| `airc remote owner <owner>` | GitHubリポジトリオーナーを設定 |
+| `airc remote name <repo>` | リポジトリ名を設定 |
+| `airc remote <profile>` | リモートからプロファイルをダウンロード |
 
-### use
+詳細: [docs/commands.md](docs/commands.md)
 
-![use](assets/コマンド_use.png)
+## 🔧 Troubleshooting
 
-### remote
+**プロファイル切り替えが反映されない**
+- `.airc/config.json` でアクティブなプロファイルを確認
+- `.airc/.sync` の設定を確認
 
-![remote](assets/コマンド_remote.png)
+**リモートダウンロードが失敗する**
+- `airc remote owner` と `airc remote name` の設定を確認
+- リポジトリに `.airc/profiles/<profile>/` が存在するか確認
 
-## 要件
+## 📋 Requirements
 
 - Node.js >= 18.0.0
 
-## ライセンス
+## 📄 License
 
 MIT
