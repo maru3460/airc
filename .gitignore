@@ -21,8 +21,7 @@ bin/
 # other ai
 /AGENTS.md
 /.github/
-!/.github/pullrequest_template.md
-!/.github/workflows/
+/.kiro/
 
 # airc
 .airc/

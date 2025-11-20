@@ -21,6 +21,7 @@ export function generateDefaultSyncFile(): string {
 # ディレクトリ: そのディレクトリ以下のすべてのファイルを同期
 .github/
 .claude/
+.kiro/
 
 # ファイル: 特定のファイルを同期
 CLAUDE.md
