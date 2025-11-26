@@ -80,6 +80,8 @@ airc restore myprofile --force
 
 ## remote - リモートプロファイル連携
 
+デフォルトのリモートプロファイルストア: [maru3460/airc_profiles](https://github.com/maru3460/airc_profiles)
+
 ### プロファイルのダウンロード
 
 ```bash
@@ -87,7 +89,7 @@ airc remote default
 airc remote default --force
 ```
 
-GitHubリポジトリからプロファイルをダウンロードして使用します。
+GitHubリポジトリからプロファイルをダウンロードして使用します。デフォルトでは `maru3460/airc_profiles` から取得します。
 
 **オプション:**
 - `--force`: 実ファイルへの展開時に既存ファイルを上書き
@@ -109,3 +111,15 @@ airc remote branch [value]  # ブランチを取得または設定
 ```
 
 リモートリポジトリの接続先を設定します。値を省略すると現在の設定を表示します。
+
+**カスタムリモートプロファイルストアの利用例:**
+
+```bash
+# チーム用リポジトリに切り替え
+airc remote owner my-team
+airc remote name team-profiles
+
+# チーム用プロファイルをダウンロード
+airc remote --list
+airc remote standard
+```

@@ -57,7 +57,21 @@ project/
 
 リモートプロファイルは、GitHubリポジトリからプロファイルをダウンロードする機能です。他の人が公開している設定を簡単に試すことができます。
 
-### 設定の流れ
+### デフォルトリモートプロファイルストア
+
+aircは初期設定で [maru3460/airc_profiles](https://github.com/maru3460/airc_profiles) を参照します。
+
+```bash
+# デフォルトストアから利用可能なプロファイルを確認
+airc remote --list
+
+# デフォルトストアからプロファイルをダウンロード
+airc remote sample
+```
+
+### カスタムリモートプロファイルストアの利用
+
+チームや個人で独自のプロファイルストアを作成して利用することもできます。
 
 ```bash
 # 1. リポジトリの接続先を設定
@@ -69,3 +83,9 @@ airc remote their-profile
 ```
 
 これにより、`someone/ai-settings`リポジトリの`their-profile`がローカルにダウンロードされ、すぐに使用できる状態になります。
+
+### リモートプロファイルストアの作り方
+
+独自のリモートプロファイルストアを作成するには、[maru3460/airc_profiles](https://github.com/maru3460/airc_profiles) をフォークして使用します。
+
+詳細な手順は [maru3460/airc_profiles](https://github.com/maru3460/airc_profiles) を参照してください。

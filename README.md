@@ -27,11 +27,14 @@ airc list  # 保存されているプロファイルを表示
 
 ### リモートプロファイルの利用
 
+リモートプロファイルストア: [maru3460/airc_profiles](https://github.com/maru3460/airc_profiles)
+
 ```bash
-airc remote owner my-team          # GitHubリポジトリオーナーを設定
-airc remote name team-ai-config    # リポジトリ名を設定
-airc remote standard               # リモートからダウンロード
+airc remote --list  # 利用可能なプロファイルを表示
+airc remote sample  # リモートからダウンロード
 ```
+
+詳細: [docs/concepts.md](docs/concepts.md#リモートプロファイル)
 
 ## 💡 ユースケース
 
