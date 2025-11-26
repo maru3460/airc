@@ -1,6 +1,6 @@
 // GitHub リポジトリ設定（デフォルト値）
 export const DEFAULT_REPO_OWNER = "maru3460";
-export const DEFAULT_REPO_NAME = "airc";
+export const DEFAULT_REPO_NAME = "airc_profiles";
 export const DEFAULT_REPO_BRANCH = "main";
 
 // GitHub API エンドポイント

@@ -12,11 +12,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "prepare": "npm run build",
-    "postinstall": "simple-git-hooks"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "node scripts/generate-manifest.js && git add profiles/**/files.json"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -29,7 +25,6 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
     "@types/yargs": "^17.0.33",
-    "simple-git-hooks": "^2.13.1",
     "typescript": "^5.0.0"
   },
   "files": [
