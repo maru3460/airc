@@ -84,6 +84,20 @@ airc remote their-profile
 
 これにより、`someone/ai-settings`リポジトリの`their-profile`がローカルにダウンロードされ、すぐに使用できる状態になります。
 
+### ブランチの指定
+
+リモートプロファイルストアの特定のブランチを参照することもできます。
+
+```bash
+# ブランチを設定
+airc remote branch develop
+
+# 指定したブランチからプロファイルをダウンロード
+airc remote experimental
+```
+
+ブランチを指定しない場合は、デフォルトブランチ（通常は `main`）が使用されます。
+
 ### リモートプロファイルストアの作り方
 
 独自のリモートプロファイルストアを作成するには、[maru3460/airc_profiles](https://github.com/maru3460/airc_profiles) をフォークして使用します。

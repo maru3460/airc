@@ -87,6 +87,7 @@ airc use standard      # 標準設定に切り替え
 |---------|------|
 | `airc remote owner <owner>` | GitHubリポジトリオーナーを設定 |
 | `airc remote name <repo>` | リポジトリ名を設定 |
+| `airc remote branch <branch>` | ブランチを設定 |
 | `airc remote <profile>` | リモートからプロファイルをダウンロード |
 
 詳細: [docs/commands.md](docs/commands.md)
@@ -111,19 +112,9 @@ CLAUDE.md
 
 詳細: [docs/configuration.md](docs/configuration.md)
 
-## 🔧 Troubleshooting
+## 🔧 トラブルシューティング
 
-**プロファイル切り替えが反映されない**
-- `.airc/config.json` でアクティブなプロファイルを確認
-- `.airc/.sync` の設定を確認
-
-**リモートダウンロードが失敗する**
-- `airc remote owner` と `airc remote name` の設定を確認
-- リポジトリに `.airc/profiles/<profile>/` が存在するか確認
-
-## 📋 Requirements
-
-- Node.js >= 18.0.0
+問題が発生した場合は、[FAQ](docs/faq.md)を参照してください。
 
 ## 📄 License
 
