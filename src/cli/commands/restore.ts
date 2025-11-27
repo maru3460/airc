@@ -2,7 +2,7 @@ import type { Argv, CommandModule } from 'yargs';
 import { restoreFromProfile } from '../../utils/syncFiles.js';
 import { profileExists } from '../../utils/profiles.js';
 import { ensureInitialized } from '../../utils/config.js';
-import { askOverwrite } from '../../utils/fs.js';
+import { askConfirm } from '../../utils/fs.js';
 import { EMOJI } from '../../emoji.js';
 
 interface RestoreOptions {
@@ -11,9 +11,9 @@ interface RestoreOptions {
 }
 
 /**
- * プロファイルから実ファイルへの復元ロジック
+ * プロファイルから実ファイルへの展開ロジック
  * 注意: アクティブプロファイルは変更されず、現在の作業内容も保存されない
- * @param options - 復元オプション
+ * @param options - 展開オプション
  */
 async function restoreProfile(options: RestoreOptions): Promise<void> {
   await ensureInitialized();
@@ -33,7 +33,7 @@ async function restoreProfile(options: RestoreOptions): Promise<void> {
     console.log(`  - プロファイル "${profileName}" の内容を展開します`);
     console.log(`  - 現在の作業内容はプロファイルに保存されません\n`);
 
-    const shouldRestore = await askOverwrite('続けますか?');
+    const shouldRestore = await askConfirm('続けますか?');
 
     if (!shouldRestore) {
       console.log(`${EMOJI.INFO} キャンセルされました`);
@@ -50,22 +50,22 @@ async function restoreProfile(options: RestoreOptions): Promise<void> {
 // yargs コマンドビルダー
 const restoreCommandBuilder: CommandModule<{}, RestoreOptions> = {
   command: 'restore <profile>',
-  describe: 'プロファイルから実ファイルに復元',
+  describe: 'プロファイルから実ファイルに展開',
   builder: (yargs: Argv) => {
     return yargs
       .positional('profile', {
         type: 'string',
-        description: '復元するプロファイル名',
+        description: '展開するプロファイル名',
         demandOption: true
       })
       .option('force', {
         alias: 'f',
         type: 'boolean',
-        description: '確認なしで復元',
+        description: '確認なしで展開',
         default: false
       })
-      .example('$0 restore myprofile', '指定したプロファイルを復元')
-      .example('$0 restore myprofile --force', '確認なしで復元') as Argv<RestoreOptions>;
+      .example('$0 restore myprofile', '指定したプロファイルを展開')
+      .example('$0 restore myprofile --force', '確認なしで展開') as Argv<RestoreOptions>;
   },
   handler: async (argv) => {
     const options: RestoreOptions = {

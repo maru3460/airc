@@ -12,7 +12,7 @@ async function listProfiles(): Promise<void> {
   const config = await readLocalConfig();
   const currentProfile = config.current;
 
-  console.log(`\n${EMOJI.SUCCESS} ローカルプロファイル:\n`);
+  console.log(`ローカルプロファイル:\n`);
 
   profiles.forEach(profile => {
     if (profile === currentProfile) {

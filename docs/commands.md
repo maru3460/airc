@@ -66,17 +66,17 @@ airc clear --force
 **オプション:**
 - `--force`: 確認なしで削除
 
-## restore \<name\> - 復元
+## restore \<name\> - 展開
 
 ```bash
 airc restore myprofile
 airc restore myprofile --force
 ```
 
-指定したプロファイルから実ファイルに復元します。
+指定したプロファイルを実ファイルに展開します。
 
 **オプション:**
-- `--force`: 確認なしで復元
+- `--force`: 確認なしで展開
 
 ## remote - リモートプロファイル連携
 
