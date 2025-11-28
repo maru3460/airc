@@ -127,6 +127,41 @@ airc remote branch [value]  # ブランチを取得または設定
 
 リモートリポジトリの接続先を設定します。値を省略すると現在の設定を表示します。
 
+#### トークンの設定
+
+```bash
+airc remote token [value]      # トークンを取得または設定
+airc remote token --remove     # トークンを削除
+```
+
+プライベートリポジトリからプロファイルをダウンロードする場合は、適切なスコープ（`repo`）を持つGitHub Personal Access Tokenを設定してください。
+
+**トークンの作成方法:**
+
+1. GitHubの設定 > Developer settings > Personal access tokens > Tokens (classic)
+2. 「Generate new token」をクリック
+3. `repo` スコープを選択
+4. トークンを生成してコピー
+5. `airc remote token <your-token>` で設定
+
+**セキュリティ:**
+
+- トークンは `.airc/config.json` に保存されます
+- config.jsonは所有者のみ読み書き可能な権限（0600）で保存されます
+- トークンを表示する際は自動的にマスクされます（例: `ghp_****...xyz`）
+
+**使用例:**
+
+```bash
+# プライベートリポジトリの設定
+airc remote owner my-company
+airc remote name private-profiles
+airc remote token ghp_xxxxxxxxxxxx
+
+# プロファイルをダウンロード
+airc remote company-standard
+```
+
 **カスタムリモートプロファイルストアの利用例:**
 
 ```bash

@@ -98,6 +98,24 @@ airc remote experimental
 
 ブランチを指定しない場合は、デフォルトブランチ（通常は `main`）が使用されます。
 
+### プライベートリポジトリの利用
+
+プライベートリポジトリをリモートプロファイルストアとして利用する場合は、GitHub Personal Access Tokenが必要です。
+
+```bash
+# 1. トークンを設定
+airc remote token ghp_xxxxxxxxxxxx
+
+# 2. プライベートリポジトリを設定
+airc remote owner my-company
+airc remote name private-profiles
+
+# 3. プロファイルをダウンロード
+airc remote company-standard
+```
+
+詳細な手順は [コマンドリファレンス](commands.md#トークンの設定) を参照してください。
+
 ### リモートプロファイルストアの作り方
 
 独自のリモートプロファイルストアを作成するには、[maru3460/airc_profiles](https://github.com/maru3460/airc_profiles) をフォークして使用します。

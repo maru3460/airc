@@ -88,6 +88,7 @@ airc use standard      # 標準設定に切り替え
 | `airc remote owner <owner>` | GitHubリポジトリオーナーを設定 |
 | `airc remote name <repo>` | リポジトリ名を設定 |
 | `airc remote branch <branch>` | ブランチを設定 |
+| `airc remote token [token]` | トークンを取得または設定（プライベートリポジトリ用） |
 | `airc remote <profile>` | リモートからプロファイルをダウンロード |
 
 詳細: [docs/commands.md](docs/commands.md)
