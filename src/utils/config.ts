@@ -80,6 +80,10 @@ export async function writeLocalConfig(config: LocalConfig): Promise<void> {
   // 設定をJSON形式で保存
   const content = JSON.stringify(config, null, 2) + '\n';
   await fs.writeFile(configPath, content, 'utf-8');
+
+  // セキュリティのため、config.json のファイル権限を 600 に設定
+  // （所有者のみ読み書き可能。トークンが含まれる可能性があるため）
+  await fs.chmod(configPath, 0o600);
 }
 
 /**

@@ -28,3 +28,18 @@ export function getProfileAlreadyExistsRemoteMessage(profile: string): string {
     `  - airc delete ${profile}           # 削除\n` +
     `  - airc rename ${profile} <新しい名前>  # リネーム`;
 }
+
+/**
+ * GitHub API関連のエラーを、ユーザーフレンドリーなメッセージに変換
+ * エラーの種類(401/403/404等)を問わず、一律で同じメッセージを返す
+ */
+export function formatGitHubError(context: string): Error {
+  let userMessage = 'GitHubとの通信に失敗しました';
+  userMessage += `\n${context}`;
+  userMessage += '\n\n以下をご確認ください:';
+  userMessage += '\n- インターネット接続';
+  userMessage += '\n- リポジトリ設定 (airc remote owner/name/branch)';
+  userMessage += '\n- アクセストークン (airc remote token)';
+
+  return new Error(userMessage);
+}

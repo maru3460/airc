@@ -4,6 +4,8 @@ import { downloadRemoteProfile } from './download.js';
 import { handleOwner } from './owner.js';
 import { handleName } from './name.js';
 import { handleBranch } from './branch.js';
+import { handleToken } from './token.js';
+import { EMOJI } from '../../../emoji.js';
 
 // オプション型定義
 interface RemoteOptions {
@@ -81,19 +83,48 @@ const remoteCommandBuilder: CommandModule<{}, RemoteOptions> = {
           await handleBranch(argv.value as string | undefined);
         }
       )
+      // サブコマンド: token
+      .command(
+        'token [value]',
+        'GitHub Personal Access Token を取得、設定、または削除',
+        (yargs) => {
+          return yargs
+            .positional('value', {
+              type: 'string',
+              description: '設定するトークン'
+            })
+            .option('remove', {
+              type: 'boolean',
+              description: 'トークンを削除',
+              default: false
+            });
+        },
+        async (argv) => {
+          await handleToken(argv.value as string | undefined, { remove: argv.remove as boolean });
+        }
+      )
       .example('$0 remote myprofile', '"myprofile" をダウンロード')
       .example('$0 remote --list', 'リモートプロファイル一覧を表示')
       .example('$0 remote owner', '現在のリポジトリオーナーを表示')
       .example('$0 remote owner maru3460', 'リポジトリオーナーを設定')
       .example('$0 remote name airc', 'リポジトリ名を設定')
-      .example('$0 remote branch main', 'ブランチ名を設定') as Argv<RemoteOptions>;
+      .example('$0 remote branch main', 'ブランチ名を設定')
+      .example('$0 remote token', '現在のトークンを表示（マスク）')
+      .example('$0 remote token ghp_xxxx', 'トークンを設定')
+      .example('$0 remote token --remove', 'トークンを削除') as Argv<RemoteOptions>;
   },
   handler: async (argv) => {
-    const options: RemoteOptions = {
-      profile: argv.profile,
-      list: argv.list
-    };
-    await handleRemote(options);
+    try {
+      const options: RemoteOptions = {
+        profile: argv.profile,
+        list: argv.list
+      };
+      await handleRemote(options);
+    } catch (error: any) {
+      // エラーメッセージのみを表示（スタックトレースなし）
+      console.error(`${EMOJI.ERROR} ${error.message}`);
+      process.exit(1);
+    }
   }
 };
 

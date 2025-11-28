@@ -27,6 +27,7 @@ export interface RepoConfig {
   owner: string;   // リポジトリオーナー
   name: string;    // リポジトリ名
   branch: string;  // ブランチ名
+  token?: string;  // GitHub Personal Access Token（プライベートリポジトリ用、オプション）
 }
 
 // ローカルプロファイル設定

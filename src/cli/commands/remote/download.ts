@@ -7,7 +7,7 @@ import { MAX_FILE_SIZE } from '../../../config.js';
 import { EMOJI } from '../../../emoji.js';
 import { getProfilePath, profileExists, deleteProfile, isValidProfileName } from '../../../utils/profiles.js';
 import { ensureInitialized } from '../../../utils/config.js';
-import { PROFILE_NAME_REQUIRED_MESSAGE, getProfileAlreadyExistsRemoteMessage } from '../../../messages.js';
+import { PROFILE_NAME_REQUIRED_MESSAGE, getProfileAlreadyExistsRemoteMessage, formatGitHubError } from '../../../messages.js';
 
 /**
  * ダウンロードの検証
@@ -97,10 +97,12 @@ export async function downloadRemoteProfile(profile: string): Promise<void> {
 
   try {
     await downloadFiles(profile);
-  } catch (error) {
+  } catch (error: any) {
     // エラー発生時はダウンロード済みファイルを全削除
     await deleteProfile(profile);
-    throw error;
+
+    // GitHub API関連のエラーをユーザーフレンドリーなメッセージに変換
+    throw formatGitHubError('リモートプロファイルをダウンロードできませんでした');
   }
 
   console.log(`${EMOJI.SUCCESS} プロファイル "${profile}" をダウンロードしました`);

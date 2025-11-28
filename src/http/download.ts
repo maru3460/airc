@@ -1,3 +1,5 @@
+import { getGitHubToken } from '../auth/github.js';
+
 /**
  * ファイルサイズ制限付きダウンロード結果
  */
@@ -22,11 +24,20 @@ export async function downloadFromGitHub(
   maxSize: number
 ): Promise<DownloadResponse> {
   try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'airc-cli'
-      }
-    });
+    // トークンを取得（オプション）
+    const token = await getGitHubToken();
+
+    // ヘッダーを構築
+    const headers: Record<string, string> = {
+      'User-Agent': 'airc-cli'
+    };
+
+    // トークンがあれば Authorization ヘッダーを追加
+    if (token) {
+      headers['Authorization'] = `token ${token}`;
+    }
+
+    const response = await fetch(url, { headers });
 
     // HTTP ステータスコードの確認
     if (!response.ok) {
