@@ -1,6 +1,6 @@
 {
   "name": "@maru3460/airc",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "copilot や claude の設定を簡単に共有するためのツール",
   "bin": {
